@@ -141,13 +141,14 @@ WeChat (827924829) and email (zhangyixiangece@gmail.com) as the two contact chan
 
 ## 5. Visual Design System
 
-Direction: **editorial minimalism with data emphasis** — a Kinfolk-magazine sensibility (generous whitespace, restrained serif display type) crossed with a Bloomberg-terminal treatment of numbers (tabular/monospace figures, high-contrast metric callouts). This direction is consistent with the user's own prior design taste (the `tiktok-roi` project's `PRODUCT.md` independently specifies a "Kinfolk + Bloomberg numbers" aesthetic).
+Direction: **editorial sensibility with data-as-evidence** — a considered, magazine-adjacent restraint crossed with a Bloomberg-terminal treatment of numbers (tabular/monospace figures, provenance-first metric callouts). This strategic direction is consistent with the user's own prior design taste (the `tiktok-roi` project independently arrived at a "Kinfolk layout, Bloomberg numbers" brand personality) and is confirmed by the user for this site too.
 
-- Type: serif display face for headlines (e.g. Fraunces or Newsreader), neutral sans for body copy (Inter, paired with a matching CJK face — e.g. Source Han Sans / 思源黑体 — properly weighted and spaced for Chinese, not just the Latin font stretched over CJK), monospace for all metrics/figures (e.g. "SLA 99.99%", "+80% efficiency")
-- Palette: near-black/near-white base, a single restrained accent color (deep green or deep blue), no gradients or decorative shadows
-- Layout: generous whitespace, card-grid for case studies, quantified results visually emphasized (larger/mono treatment) to reinforce the "data emphasis" half of the direction
-- Chinese typography gets its own pass (weight, line-height, mixed CJK/Latin spacing) rather than reusing English type rules verbatim
-- Use the `taste-skill` and `impeccable` tools (per user's original request) during the visual-polish pass of implementation
+**Implementation note (added after tool research, see §7):** this project has the `impeccable` design skill available locally (already used in `tiktok-roi`), whose `brand.md` register guidance explicitly flags the *literal, generic execution* of "editorial-typographic" — italic Fraunces/Newsreader-style serif + tiny tracked mono kickers + ruled columns + zero imagery — as a saturated, reflex-reject 2026 AI-portfolio cliché, and separately bans the "hero-metric template" (big number + small label + supporting stats) as a SaaS cliché. Both are exactly the literal treatment first drafted here. Rather than freezing specific fonts/layout in this spec, **defer the concrete execution (typeface choice, color tokens, exact metric/card treatment) to the `impeccable init` → `document`/`shape` → `craft` workflow** during implementation, which is specifically designed to find a distinctive, non-cliché execution of a brief like this one. What stays fixed from this spec is the *brief*, not the literal treatment:
+
+- Strategic brief for PRODUCT.md: editorial-adjacent, quantitative, calm, credible to both engineers and business decision-makers; numbers/evidence carry the pitch, not adjectives; bilingual (zh/en) with equal typographic care for CJK, not CJK-as-afterthought
+- Anti-references to record: generic SaaS gradient dashboards; *and* the generic italic-serif-plus-mono-kicker "Klim/Notion-adjacent" portfolio cliché itself — the brief should land recognizably in the editorial+data territory without landing on the most obvious execution of it
+- Palette/type/exact layout tokens: to be decided via `impeccable`'s font-selection-procedure and palette guidance (OKLCH, named reference point), not hardcoded here
+- Use the `taste-skill` tool (per user's original request) as a secondary cross-check during the final polish pass, not as a second primary driver alongside `impeccable` — running two opinionated anti-slop systems as co-equal drivers risks conflicting guidance mid-build
 
 ## 6. GEO Technical Implementation
 
