@@ -1707,7 +1707,7 @@ Same mechanical pattern as Task 14.
 ```markdown
 ---
 title: "Blueprint：AI Agent 工厂"
-summary: "为 Blueprint Infrastructure 构建能够自我创建 Agent 的平台，以及一条把"需求草图"编译成可上线代码的 AI 流水线。"
+summary: "为 Blueprint Infrastructure 构建能够自我创建 Agent 的平台，以及一条把\"需求草图\"编译成可上线代码的 AI 流水线。"
 order: 2
 metrics:
   - label: "Agent 注册中心规模"
@@ -2004,7 +2004,7 @@ Same mechanical pattern as Task 14. This is the last of the 5 case studies, so t
 ```markdown
 ---
 title: "投资研究体系：从 VC 尽调工具到量化回测"
-summary: "一套系统化、自动化的个人投研实践——不是业余爱好，而是"懂 AI 及相关产业"这句话在实践中的样子。"
+summary: "一套系统化、自动化的个人投研实践——不是业余爱好，而是\"懂 AI 及相关产业\"这句话在实践中的样子。"
 order: 5
 metrics:
   - label: "量化回测覆盖"
