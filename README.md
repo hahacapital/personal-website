@@ -9,6 +9,10 @@ Personal portfolio site for Yixiang Zhang — an Astro static site styled with T
 - [@astrojs/sitemap](https://docs.astro.build/en/guides/integrations-guide/sitemap/) for `sitemap-index.xml` generation, configured with `i18n` locale mapping (`zh` → `zh-CN`, `en` → `en-US`, default `zh`)
 - TypeScript (strict, via `astro/tsconfigs/strict`)
 
+## Design Workflow
+
+`PRODUCT.md` at the project root is the strategic brief (register, users, product purpose, brand personality, anti-references, design principles, accessibility) that every [`impeccable`](https://impeccable.style) invocation reads before doing design work. The `impeccable` Claude Code skill is installed at `.claude/skills/impeccable/` via `npx impeccable install`; it adds `craft`/`shape`/`critique`/`audit`/`polish`/etc. commands plus a UI anti-pattern-detection hook. Re-run `npx impeccable install` (or `npx impeccable update`) to refresh the skill; `.claude/settings.local.json`, which the installer also writes for the detection hook, is intentionally not committed (local-only, matching this machine's global gitignore convention for that file).
+
 ## GEO (Generative Engine Optimization) endpoints
 
 Build-time API route endpoints under `src/pages/`, emitted into `dist/` by `astro build`:
