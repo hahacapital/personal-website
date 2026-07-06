@@ -1,0 +1,32 @@
+---
+// src/pages/en/work/[slug].astro
+// English case study route. One static page per entry in the workEn collection;
+// the entry's frontmatter fields flow straight into the shared CaseStudyLayout,
+// and the Markdown body renders through <Content /> into the layout's prose
+// slot. Works against whatever is in the collection today (the _fixture
+// placeholder) or the five real case studies once they land.
+import { getCollection, render } from 'astro:content';
+import CaseStudyLayout from '../../../layouts/CaseStudyLayout.astro';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('workEn');
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+<CaseStudyLayout
+  lang="en"
+  title={entry.data.title}
+  summary={entry.data.summary}
+  path={`work/${entry.id}`}
+  metrics={entry.data.metrics}
+  faqs={entry.data.faqs}
+  updatedDate={entry.data.updatedDate}
+>
+  <Content />
+</CaseStudyLayout>

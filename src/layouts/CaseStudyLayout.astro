@@ -1,0 +1,398 @@
+---
+// src/layouts/CaseStudyLayout.astro
+// The shared template every flagship case study renders through (Tasks 14-18,
+// both languages). It is the *article* view of a shipped system: the same
+// "Machined Faceplate" instrument that lists the case in CaseIndex, opened up.
+//
+// Composition, top to bottom:
+//   1. Header — a mono "Updated" ledger line (genuine machine-readable metadata,
+//      NOT a decorative tracked eyebrow), the title at display scale, the summary
+//      as a lead paragraph.
+//   2. Results plate — the metrics array as a value·label spec readout. Values in
+//      the editorial face (the number IS the evidence, per PRODUCT.md), labels in
+//      the mono instrument voice; items separated by hairline rules, never boxed
+//      as gradient hero-metric cards. A leading coral hairline anchors the plate
+//      the way the coral tick/index anchors IdentityPillars & the Timeline.
+//   3. Body — the Markdown <Content /> slot, styled with a real prose system
+//      (headings, lists, bold/emphasis, inline code, quotes, rules) built entirely
+//      from the established DESIGN.md tokens, capped at the body measure.
+//   4. FAQ — the existing Faq.astro component (reused, not reimplemented) under a
+//      heading, only when there are questions.
+//
+// SEO: BaseLayout's <Seo> takes the jsonLd array; here that's the Article block
+// (datePublished/dateModified both derive from updatedDate — v1 tracks no
+// separate publish date) plus, when present, the FAQPage block. .filter(Boolean)
+// drops the FAQ block when there are no faqs (buildFaqJsonLd returns null).
+import BaseLayout from './BaseLayout.astro';
+import Faq from '../components/Faq.astro';
+import { buildArticleJsonLd, buildFaqJsonLd } from '../lib/geo';
+import { siteConfig } from '../data/site';
+
+interface Metric {
+  label: string;
+  value: string;
+}
+interface FaqEntry {
+  question: string;
+  answer: string;
+}
+
+interface Props {
+  lang: 'zh' | 'en';
+  title: string;
+  summary: string;
+  path: string;
+  metrics: Metric[];
+  faqs: FaqEntry[];
+  updatedDate: Date;
+}
+
+const { lang, title, summary, path, metrics, faqs, updatedDate } = Astro.props;
+
+// Article canonical URL matches the one <Seo> derives from `path`
+// (buildHreflangLinks prepends /{lang}/ and appends the trailing slash).
+const articleUrl = `${siteConfig.siteUrl}/${lang}/${path}/`;
+const isoDate = updatedDate.toISOString();
+
+const jsonLd = [
+  buildArticleJsonLd({
+    headline: title,
+    description: summary,
+    url: articleUrl,
+    datePublished: isoDate,
+    dateModified: isoDate,
+    inLanguage: lang,
+  }),
+  buildFaqJsonLd(faqs),
+].filter((block): block is Record<string, unknown> => block !== null);
+
+// Human-readable "updated" date — the instrument voice on genuine metadata.
+// Rendered in each locale's convention; <time> carries the machine value.
+const updatedLabel = lang === 'zh' ? '更新于' : 'Updated';
+const dateDisplay = new Intl.DateTimeFormat(lang === 'zh' ? 'zh-CN' : 'en-US', {
+  year: 'numeric',
+  month: lang === 'zh' ? 'long' : 'short',
+  day: 'numeric',
+}).format(updatedDate);
+
+const faqHeading = lang === 'zh' ? '常见问题' : 'Common questions';
+const resultsLabel = lang === 'zh' ? '成果' : 'Results';
+
+const hasMetrics = metrics.length > 0;
+const hasFaqs = faqs.length > 0;
+---
+
+<BaseLayout lang={lang} title={title} description={summary} path={path} jsonLd={jsonLd}>
+  <article class="case-study">
+    <header class="cs-head">
+      <div class="container">
+        <p class="cs-head__meta">
+          <span class="cs-head__meta-key">{updatedLabel}</span>
+          <time class="cs-head__meta-val" datetime={isoDate}>{dateDisplay}</time>
+        </p>
+        <h1 class="cs-head__title">{title}</h1>
+        <p class="cs-head__summary">{summary}</p>
+      </div>
+    </header>
+
+    {hasMetrics && (
+      <section class="cs-results" aria-label={resultsLabel}>
+        <div class="container">
+          <dl class="cs-results__plate">
+            {metrics.map((metric) => (
+              <div class="cs-metric">
+                {/* dt before dd keeps the <dl> valid; column-reverse lifts the
+                    value visually above its label. */}
+                <dt class="cs-metric__label">{metric.label}</dt>
+                <dd class="cs-metric__value">{metric.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+    )}
+
+    <div class="cs-body">
+      <div class="container">
+        <div class="prose">
+          <slot />
+        </div>
+      </div>
+    </div>
+
+    {hasFaqs && (
+      <section class="cs-faq" aria-labelledby="cs-faq-heading">
+        <div class="container">
+          <h2 class="cs-faq__heading" id="cs-faq-heading">{faqHeading}</h2>
+          <Faq items={faqs} />
+        </div>
+      </section>
+    )}
+  </article>
+</BaseLayout>
+
+<style>
+  /* ---- Header ---------------------------------------------------------------
+     A quiet ledger line (mono metadata), then the title at display scale, then
+     the summary as a lead. No tracked-eyebrow kicker — the mono line is a real
+     date, the one thing the instrument voice is reserved for. */
+  .cs-head {
+    padding-block: clamp(2.5rem, 1.75rem + 4vw, 4.5rem) var(--space-xl);
+  }
+
+  .cs-head__meta {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: var(--space-lg);
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  :global(:lang(zh)) .cs-head__meta { letter-spacing: 0.04em; }
+  .cs-head__meta-key { color: var(--color-faint); }
+  .cs-head__meta-val { color: var(--color-muted); }
+
+  .cs-head__title {
+    max-width: 20ch;
+    font-size: var(--text-h1);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    color: var(--color-ink);
+  }
+  :global(:lang(zh)) .cs-head__title {
+    max-width: 24ch;
+    letter-spacing: 0;
+    line-height: 1.25;
+  }
+
+  .cs-head__summary {
+    margin-top: var(--space-lg);
+    max-width: 52ch;
+    color: var(--color-muted);
+    font-size: var(--text-lead);
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+  :global(:lang(zh)) .cs-head__summary { line-height: 1.65; }
+
+  /* ---- Results plate --------------------------------------------------------
+     The metrics as a spec readout, NOT the banned hero-metric block. A run of
+     value·label pairs divided by hairlines (rules between, never boxes around),
+     with a leading coral hairline that reads the plate as a single instrument
+     panel. The value is the editorial face at title scale — the real number does
+     the work; the label is mono + faint. Wraps to a column on narrow screens. */
+  .cs-results {
+    padding-bottom: var(--space-2xl);
+  }
+
+  .cs-results__plate {
+    margin: 0;
+    padding-left: var(--space-lg);
+    border-left: 2px solid var(--color-primary);
+    display: grid;
+    gap: var(--space-lg) var(--space-2xl);
+  }
+
+  @media (min-width: 34rem) {
+    .cs-results__plate {
+      grid-auto-flow: column;
+      grid-auto-columns: max-content;
+      align-items: start;
+    }
+    /* Hairline rules BETWEEN metrics (not a box around each). */
+    .cs-metric + .cs-metric {
+      padding-left: var(--space-2xl);
+      border-left: 1px solid var(--color-hairline);
+    }
+  }
+
+  .cs-metric {
+    display: flex;
+    flex-direction: column-reverse;  /* value (dd) lifts above the label (dt) */
+    gap: 0.35rem;
+  }
+
+  .cs-metric__value {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--text-h3);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-ink);
+    text-wrap: balance;
+  }
+  :global(:lang(zh)) .cs-metric__value { letter-spacing: 0; }
+
+  .cs-metric__label {
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+    color: var(--color-faint);
+    text-wrap: pretty;
+  }
+  :global(:lang(zh)) .cs-metric__label { letter-spacing: 0.04em; }
+
+  /* ---- Body prose -----------------------------------------------------------
+     The Markdown body slot. Real long-form typography, built from the shared
+     tokens, capped at the body measure. Slotted Markdown renders as global HTML,
+     so these rules are scoped to `.prose` and reach children via :global(). */
+  .cs-body {
+    padding-bottom: var(--space-2xl);
+  }
+
+  .prose {
+    max-width: var(--measure);
+    font-size: var(--text-body);
+    line-height: 1.6;
+    color: var(--color-ink);
+    /* Long inline tokens, file paths, or bare URLs break rather than force the
+       whole column to overflow horizontally on narrow viewports. */
+    overflow-wrap: anywhere;
+  }
+  :global(:lang(zh)) .prose { line-height: 1.75; }
+
+  /* Vertical rhythm: paragraphs and lists get top space; the first child never
+     pushes the body away from the plate above it. */
+  .prose :global(> * + *) { margin-top: var(--space-md); }
+  .prose :global(> *:first-child) { margin-top: 0; }
+
+  .prose :global(p) {
+    color: var(--color-ink);
+    text-wrap: pretty;
+  }
+
+  /* Headings sit closer to the text they introduce than to the text above. */
+  .prose :global(h2),
+  .prose :global(h3),
+  .prose :global(h4) {
+    color: var(--color-ink);
+    text-wrap: balance;
+  }
+  /* A self-contained descending ramp: markdown bodies start at h2 (h1 is the
+     page title). Each level is its own clamp so the hierarchy stays legible at
+     every width and never collapses onto the token gaps around --text-title. */
+  .prose :global(h2) {
+    margin-top: var(--space-xl);
+    font-size: var(--text-h3);                              /* ~22 → 28px */
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+  .prose :global(h3) {
+    margin-top: var(--space-lg);
+    font-size: clamp(1.1875rem, 1.1rem + 0.4vw, 1.375rem);  /* ~19 → 22px */
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+  .prose :global(h4) {
+    margin-top: var(--space-lg);
+    font-size: var(--text-body);                            /* 17px, held apart by weight */
+    line-height: 1.3;
+    color: var(--color-muted);
+  }
+  :global(:lang(zh)) .prose :global(h2),
+  :global(:lang(zh)) .prose :global(h3),
+  :global(:lang(zh)) .prose :global(h4) { letter-spacing: 0; }
+
+  .prose :global(strong) {
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+  .prose :global(em) { font-style: italic; }
+
+  /* Links carry the coral brand + the shell's underline-offset convention. */
+  .prose :global(a) {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklch, var(--color-primary) 35%, transparent);
+    text-underline-offset: 0.18em;
+    transition: text-decoration-color var(--dur-fast) var(--ease-out-quart);
+  }
+  .prose :global(a:hover) { text-decoration-color: var(--color-primary); }
+
+  /* Lists: hanging coral markers, tight rows, comfortable indent. */
+  .prose :global(ul),
+  .prose :global(ol) {
+    padding-left: 1.35em;
+    display: grid;
+    gap: var(--space-xs);
+  }
+  .prose :global(li) { padding-left: 0.25em; text-wrap: pretty; }
+  .prose :global(li::marker) {
+    color: var(--color-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .prose :global(ol) { list-style: decimal; }
+  .prose :global(ul) { list-style: disc; }
+  /* Nested lists tuck in without doubling the vertical gap. */
+  .prose :global(li > ul),
+  .prose :global(li > ol) { margin-top: var(--space-xs); }
+
+  /* Inline code — the instrument voice on a machine token, quietly plated. */
+  .prose :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    font-variant-numeric: tabular-nums;
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    color: var(--color-ink);
+  }
+  /* Fenced blocks: a plated panel; the <code> inside sheds the inline chrome. */
+  .prose :global(pre) {
+    margin-top: var(--space-md);
+    padding: var(--space-md) var(--space-lg);
+    border-radius: 8px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    overflow-x: auto;
+    font-size: var(--text-sm);
+    line-height: 1.55;
+  }
+  .prose :global(pre code) {
+    padding: 0;
+    border: 0;
+    background: none;
+    border-radius: 0;
+    font-size: inherit;
+  }
+
+  /* Pull-quote: a coral rule, no box — matches the ledger vocabulary. */
+  .prose :global(blockquote) {
+    margin-top: var(--space-md);
+    padding-left: var(--space-lg);
+    border-left: 2px solid var(--color-primary);
+    color: var(--color-muted);
+    font-size: var(--text-lead);
+    line-height: 1.5;
+  }
+  .prose :global(blockquote p) { color: var(--color-muted); }
+
+  .prose :global(hr) {
+    margin-block: var(--space-xl);
+    border: 0;
+    border-top: 1px solid var(--color-hairline);
+  }
+
+  .prose :global(a code) { color: inherit; }
+
+  /* ---- FAQ ------------------------------------------------------------------
+     Reuses Faq.astro verbatim; only the section chrome lives here. */
+  .cs-faq {
+    padding-block: var(--space-2xl);
+    border-top: 1px solid var(--color-hairline);
+  }
+  .cs-faq__heading {
+    margin-bottom: var(--space-md);
+    font-size: var(--text-h2);
+  }
+</style>
