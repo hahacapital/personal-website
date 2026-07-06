@@ -1,13 +1,11 @@
 ---
 // src/pages/index.astro
-import '../styles/global.css';
+// Minimal for now: wire the shell through BaseLayout. Task 19 replaces this
+// with the real Accept-Language root redirect + Home content.
+import BaseLayout from '../layouts/BaseLayout.astro';
 ---
-<html lang="zh">
-  <head>
-    <meta charset="utf-8" />
-    <title>Yixiang Zhang</title>
-  </head>
-  <body>
+<BaseLayout lang="zh" title="Yixiang Zhang" description="Scaffold OK." path="">
+  <section class="container" style="padding-block: var(--space-2xl);">
     <p>Scaffold OK.</p>
-  </body>
-</html>
+  </section>
+</BaseLayout>

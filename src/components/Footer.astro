@@ -1,0 +1,269 @@
+---
+// src/components/Footer.astro
+// Quiet, structured close. A single contact ledger — the three channels set
+// in mono as identifiers ("data as evidence"): email is a mailto link,
+// WeChat is plain text (there is no useful URL for a WeChat ID), GitHub is a
+// link. Labels pair with values so nothing depends on layout alone.
+import type { Locale } from '../i18n/utils';
+import { useTranslations, getLocalizedPath } from '../i18n/utils';
+import { siteConfig } from '../data/site';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const copy = {
+  zh: {
+    connect: '联系',
+    invite: '正在寻找短期嵌入式项目合作。',
+    emailLabel: '邮箱',
+    wechatLabel: '微信',
+    githubLabel: 'GitHub',
+    nav: '导航',
+    rights: '版权所有',
+  },
+  en: {
+    connect: 'Contact',
+    invite: 'Available for short-term, embedded project engagements.',
+    emailLabel: 'Email',
+    wechatLabel: 'WeChat',
+    githubLabel: 'GitHub',
+    nav: 'Directory',
+    rights: 'All rights reserved',
+  },
+}[lang];
+
+const githubHandle = siteConfig.github.replace(/^https?:\/\/(www\.)?github\.com\//, '@');
+
+const nav = [
+  { key: 'nav.home', href: getLocalizedPath('/', lang) },
+  { key: 'nav.work', href: getLocalizedPath('/work/', lang) },
+  { key: 'nav.about', href: getLocalizedPath('/about/', lang) },
+  { key: 'nav.contact', href: getLocalizedPath('/contact/', lang) },
+] as const;
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <div class="site-footer__lead">
+      <a class="wordmark" href={getLocalizedPath('/', lang)} aria-label={siteConfig.name[lang]}>
+        <span class="wordmark__dot" aria-hidden="true"></span>
+        <span class="wordmark__name">{siteConfig.name[lang]}</span>
+      </a>
+      <p class="site-footer__invite">{copy.invite}</p>
+      <a class="cta" href={getLocalizedPath('/contact/', lang)}>
+        {t('cta.discuss')}
+        <span class="cta__arrow" aria-hidden="true">&#8594;</span>
+      </a>
+    </div>
+
+    <div class="site-footer__cols">
+      <section class="footer-block" aria-labelledby="footer-contact">
+        <h2 class="footer-block__title" id="footer-contact">{copy.connect}</h2>
+        <dl class="ledger">
+          <div class="ledger__row">
+            <dt class="ledger__key">{copy.emailLabel}</dt>
+            <dd class="ledger__val">
+              <a class="ledger__link" href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
+            </dd>
+          </div>
+          <div class="ledger__row">
+            <dt class="ledger__key">{copy.wechatLabel}</dt>
+            <dd class="ledger__val ledger__val--plain">{siteConfig.wechat}</dd>
+          </div>
+          <div class="ledger__row">
+            <dt class="ledger__key">{copy.githubLabel}</dt>
+            <dd class="ledger__val">
+              <a
+                class="ledger__link"
+                href={siteConfig.github}
+                target="_blank"
+                rel="noopener noreferrer"
+              >{githubHandle}</a>
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <nav class="footer-block" aria-labelledby="footer-nav">
+        <h2 class="footer-block__title" id="footer-nav">{copy.nav}</h2>
+        <ul class="footer-nav">
+          {nav.map((item) => (
+            <li><a class="footer-nav__link" href={item.href}>{t(item.key)}</a></li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <div class="container site-footer__baseline">
+    <span class="site-footer__copy">
+      &#169; {year} {siteConfig.name[lang]}. {copy.rights}.
+    </span>
+    <span class="site-footer__coords">31.23&#176;N&#8202;/&#8202;121.47&#176;E &#183; Shanghai</span>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: var(--space-3xl);
+    border-top: 1px solid var(--color-hairline);
+    background: var(--color-surface);
+    color: var(--color-muted);
+  }
+
+  .site-footer__inner {
+    display: grid;
+    gap: var(--space-2xl);
+    padding-block: var(--space-2xl) var(--space-xl);
+  }
+
+  @media (min-width: 52rem) {
+    .site-footer__inner {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  /* -- Lead ---------------------------------------------------------------- */
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-decoration: none;
+    color: var(--color-ink);
+  }
+  .wordmark__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--color-primary);
+    flex: none;
+  }
+  .wordmark__name { font-size: 1.0625rem; font-weight: 600; letter-spacing: -0.01em; }
+  :global(:lang(zh)) .wordmark__name { letter-spacing: 0.02em; }
+
+  .site-footer__invite {
+    margin-top: var(--space-md);
+    max-width: 34ch;
+    color: var(--color-muted);
+    font-size: var(--text-body);
+    line-height: 1.5;
+  }
+
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: var(--space-lg);
+    padding: 0.65rem 1.1rem;
+    border-radius: 10px;
+    background: var(--color-primary);
+    color: var(--color-bg);
+    font-weight: 500;
+    font-size: var(--text-sm);
+    text-decoration: none;
+    transition:
+      background-color var(--dur) var(--ease-out-quart),
+      transform var(--dur) var(--ease-out-quart);
+  }
+  .cta:hover { background: var(--color-primary-hover); }
+  .cta:active { transform: translateY(1px); }
+  .cta:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+  .cta__arrow { transition: transform var(--dur) var(--ease-out-quart); }
+  .cta:hover .cta__arrow { transform: translateX(3px); }
+
+  /* -- Columns ------------------------------------------------------------- */
+  .site-footer__cols {
+    display: grid;
+    gap: var(--space-xl);
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 30rem) {
+    .site-footer__cols { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+  }
+
+  .footer-block__title {
+    margin-bottom: var(--space-md);
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-faint);
+  }
+  :global(:lang(zh)) .footer-block__title {
+    text-transform: none;
+    letter-spacing: 0.08em;
+  }
+
+  /* Contact ledger */
+  .ledger { margin: 0; display: grid; gap: var(--space-sm); }
+  .ledger__row {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--space-sm);
+  }
+  .ledger__key {
+    margin: 0;
+    font-size: var(--text-caption);
+    color: var(--color-faint);
+  }
+  .ledger__val {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    word-break: break-word;
+    color: var(--color-ink);
+  }
+  .ledger__val--plain { color: var(--color-ink); }
+  .ledger__link {
+    color: var(--color-ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-hairline);
+    padding-bottom: 1px;
+    transition: border-color var(--dur-fast) var(--ease-out-quart),
+      color var(--dur-fast) var(--ease-out-quart);
+  }
+  .ledger__link:hover { color: var(--color-primary); border-color: var(--color-primary); }
+  .ledger__link:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+  /* Footer nav */
+  .footer-nav { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.125rem; }
+  .footer-nav__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;      /* 44px comfortable tap target */
+    padding-block: 0.25rem;
+    color: var(--color-muted);
+    text-decoration: none;
+    font-size: var(--text-sm);
+    transition: color var(--dur-fast) var(--ease-out-quart);
+  }
+  .footer-nav__link:hover { color: var(--color-ink); }
+  .footer-nav__link:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: 3px; }
+
+  /* -- Baseline ------------------------------------------------------------ */
+  .site-footer__baseline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm) var(--space-lg);
+    justify-content: space-between;
+    align-items: center;
+    padding-block: var(--space-lg);
+    border-top: 1px solid var(--color-hairline);
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    letter-spacing: 0.01em;
+    color: var(--color-faint);
+  }
+  .site-footer__coords { font-variant-numeric: tabular-nums; }
+</style>

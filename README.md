@@ -11,7 +11,16 @@ Personal portfolio site for Yixiang Zhang — an Astro static site styled with T
 
 ## Design Workflow
 
-`PRODUCT.md` at the project root is the strategic brief (register, users, product purpose, brand personality, anti-references, design principles, accessibility) that every [`impeccable`](https://impeccable.style) invocation reads before doing design work. The `impeccable` Claude Code skill is installed at `.claude/skills/impeccable/` via `npx impeccable install`; it adds `craft`/`shape`/`critique`/`audit`/`polish`/etc. commands plus a UI anti-pattern-detection hook. Re-run `npx impeccable install` (or `npx impeccable update`) to refresh the skill; `.claude/settings.local.json`, which the installer also writes for the detection hook, is intentionally not committed (local-only, matching this machine's global gitignore convention for that file).
+`PRODUCT.md` at the project root is the strategic brief (register, users, product purpose, brand personality, anti-references, design principles, accessibility) that every [`impeccable`](https://impeccable.style) invocation reads before doing design work. `DESIGN.md` (also at the root) is the resulting visual system — the machine-readable design tokens plus the six-section DESIGN.md-spec body (Overview / Colors / Typography / Elevation / Components / Do's and Don'ts). New pages should extend `DESIGN.md`'s system, not re-derive it. The `impeccable` Claude Code skill is installed at `.claude/skills/impeccable/` via `npx impeccable install`; it adds `craft`/`shape`/`critique`/`audit`/`polish`/etc. commands plus a UI anti-pattern-detection hook. Re-run `npx impeccable install` (or `npx impeccable update`) to refresh the skill; `.claude/settings.local.json`, which the installer also writes for the detection hook, is intentionally not committed (local-only, matching this machine's global gitignore convention for that file).
+
+## Design System
+
+The shared shell lives in `src/layouts/BaseLayout.astro` (props `{ lang, title, description, path, jsonLd? }`) which renders `<Seo>` + `<Header>` + `<main>` slot + `<Footer>`. Every page wraps its content in this layout.
+
+- **Components**: `Header.astro` (sticky masthead — wordmark, nav via `useTranslations`, `LanguageSwitcher`; inline nav on desktop, a zero-JS `<details>` disclosure on mobile), `Footer.astro` (contact ledger — email `mailto:`, WeChat plain text, GitHub link, all from `siteConfig`), `LanguageSwitcher.astro` (a 中/EN segmented control linking to `getLocalizedPath(Astro.url.pathname, otherLang)`, keyboard-navigable with visible focus).
+- **Tokens**: defined in `src/styles/global.css` via Tailwind v4's `@theme` (OKLCH colors, fluid `clamp()` type scale, 4pt spacing, motion easing). Restrained palette — pure-white surface, warm-near-black ink, one coral brand color; warmth is carried by the coral and typography, not a tinted background.
+- **Fonts**: self-hosted via `@fontsource-variable/*` (no runtime dependency on Google's CDN, which is blocked in mainland China): **Schibsted Grotesk** (Latin display/body), **Spline Sans Mono** (figures/metadata/labels), **Noto Sans SC** (CJK, weight-matched for bilingual parity). All variable, `font-display: swap`; the CJK subsets load on demand via `unicode-range`.
+- **Accessibility**: WCAG AA contrast throughout, a skip link, visible `:focus-visible` rings, `aria-current` on active nav, ≥44px touch targets, and a full `prefers-reduced-motion` branch.
 
 ## GEO (Generative Engine Optimization) endpoints
 

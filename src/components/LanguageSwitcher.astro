@@ -1,0 +1,119 @@
+---
+// src/components/LanguageSwitcher.astro
+// A two-state toggle (中 / EN) rendered as a segmented control. The active
+// language is marked with aria-current AND a filled segment (not color
+// alone), so the state is legible without relying on hue. The inactive
+// segment is a real link to the same page in the other language, built
+// from the current pathname via getLocalizedPath.
+import type { Locale } from '../i18n/utils';
+import { getLocalizedPath, locales } from '../i18n/utils';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+
+// Short, symmetric labels — one glyph each keeps the control compact and
+// balanced across zh/en. Chinese uses the character 中; English uses EN.
+const labels: Record<Locale, string> = { zh: '中', en: 'EN' };
+
+const pathname = Astro.url.pathname;
+
+const segments = locales.map((code) => ({
+  code,
+  label: labels[code],
+  href: getLocalizedPath(pathname, code),
+  current: code === lang,
+}));
+---
+
+<nav class="lang" aria-label="Language">
+  <ul class="lang__list">
+    {segments.map((seg) => (
+      <li>
+        {seg.current ? (
+          <span class="lang__seg lang__seg--current" aria-current="true">
+            {seg.label}
+          </span>
+        ) : (
+          <a
+            class="lang__seg"
+            href={seg.href}
+            hreflang={seg.code}
+            lang={seg.code}
+            rel="alternate"
+          >
+            {seg.label}
+          </a>
+        )}
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  .lang {
+    display: inline-flex;
+  }
+
+  .lang__list {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 0;
+    padding: 2px;
+    list-style: none;
+    border: 1px solid var(--color-hairline);
+    border-radius: 999px;
+    background: var(--color-surface);
+  }
+
+  .lang__seg {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    min-height: 1.75rem;
+    padding: 0 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    border-radius: 999px;
+    text-decoration: none;
+    color: var(--color-muted);
+    transition:
+      color var(--dur-fast) var(--ease-out-quart),
+      background-color var(--dur-fast) var(--ease-out-quart);
+  }
+
+  /* Expand the tap/hit area to >=44px without inflating the visual pill
+     (WCAG 2.5.5 target size). The pseudo-element overlays the gap between
+     the compact segment and a comfortable touch target. */
+  .lang__seg::after {
+    content: '';
+    position: absolute;
+    inset: -0.5rem -0.125rem;
+  }
+
+  a.lang__seg:hover {
+    color: var(--color-ink);
+    background: color-mix(in oklch, var(--color-ink) 6%, transparent);
+  }
+
+  /* Active state: filled + inked. The fill (not just the color) carries the
+     "you are here" affordance so it survives grayscale / color-blind viewing. */
+  .lang__seg--current {
+    color: var(--color-bg);
+    background: var(--color-ink);
+    cursor: default;
+  }
+
+  .lang__seg:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+</style>

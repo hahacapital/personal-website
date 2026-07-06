@@ -1,0 +1,44 @@
+---
+// src/layouts/BaseLayout.astro
+// The shell every page inherits. Prop contract is fixed — later tasks
+// (Home, Work, About, Contact) depend on this exact signature.
+import Seo from '../components/Seo.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+
+interface Props {
+  lang: 'zh' | 'en';
+  title: string;
+  description: string;
+  path: string;
+  jsonLd?: Record<string, unknown>[];
+}
+
+const { lang, title, description, path, jsonLd } = Astro.props;
+
+const skipLabel = lang === 'zh' ? '跳到主要内容' : 'Skip to content';
+---
+
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <Seo lang={lang} title={title} description={description} path={path} jsonLd={jsonLd} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{skipLabel}</a>
+    <Header lang={lang} />
+    <main id="main" class="site-main">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+  </body>
+</html>
+
+<style>
+  .site-main {
+    flex: 1 0 auto;
+    width: 100%;
+  }
+</style>
