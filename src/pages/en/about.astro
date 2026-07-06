@@ -1,0 +1,19 @@
+---
+// src/pages/en/about.astro
+// The English About page: career narrative → Timeline (Task 10, reused as-is
+// with the existing 3-entry data) → working philosophy → education. All
+// markup/styles live in AboutBody; this file just wires BaseLayout with the
+// real title/description for this route.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AboutBody from '../../components/AboutBody.astro';
+
+const lang = 'en' as const;
+
+const title = 'About Yixiang Zhang · Independent Forward Deployed Engineer';
+const description =
+  "Yixiang Zhang's career: Technical Expert at Ant Financial's blockchain platform, Technical Director at XinHeYun, now an independent Forward Deployed Engineer. Working philosophy, education, and full career timeline.";
+---
+
+<BaseLayout lang={lang} title={title} description={description} path="about">
+  <AboutBody lang={lang} />
+</BaseLayout>
