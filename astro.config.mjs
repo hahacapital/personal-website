@@ -3,10 +3,13 @@ import { defineConfig } from 'astro/config';
 
 import tailwindcss from '@tailwindcss/vite';
 
+import sitemap from '@astrojs/sitemap';
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://yixiangzhang.com',
   output: 'static',
+
   // Align the content layer's data-store.json location between CLI commands
   // (`astro sync`/`astro build`, which write to `cacheDir`) and Vite "serve"
   // consumers like Vitest (which always read from the project's `.astro/`
@@ -14,7 +17,17 @@ export default defineConfig({
   // Vitest reads from `./.astro/`, so `getCollection()` sees an empty store
   // even though the sync succeeded. See tests/content-schema.test.ts.
   cacheDir: './.astro/',
+
   vite: {
     plugins: [tailwindcss()]
-  }
+  },
+
+  integrations: [
+    sitemap({
+      i18n: {
+        defaultLocale: 'zh',
+        locales: { zh: 'zh-CN', en: 'en-US' },
+      },
+    }),
+  ]
 });
