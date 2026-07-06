@@ -22,6 +22,12 @@ The shared shell lives in `src/layouts/BaseLayout.astro` (props `{ lang, title, 
 - **Fonts**: self-hosted via `@fontsource-variable/*` (no runtime dependency on Google's CDN, which is blocked in mainland China): **Schibsted Grotesk** (Latin display/body), **Spline Sans Mono** (figures/metadata/labels), **Noto Sans SC** (CJK, weight-matched for bilingual parity). All variable, `font-display: swap`; the CJK subsets load on demand via `unicode-range`.
 - **Accessibility**: WCAG AA contrast throughout, a skip link, visible `:focus-visible` rings, `aria-current` on active nav, ≥44px touch targets, and a full `prefers-reduced-motion` branch.
 
+## Pages
+
+- **Home** — `src/pages/zh/index.astro` and `src/pages/en/index.astro` (both `path=""`, wrapped in `BaseLayout`). The flagship landing page, bilingual with structural parity. Section order: Hero → IdentityPillars → CaseIndex → InvestmentSummary → Timeline → ContactBlock. Its FAQ structured data is emitted at the page level via `buildFaqJsonLd(homeContent[lang].faqs)` (a `FAQPage` block), from the same source as the visible Q&A so the two never drift.
+  - **Content** lives in `src/data/home-content.ts` — `homeContent: Record<Locale, {...}>` holding the hero statement, three identity pillars (each with proof points), the investment-background summary, a career timeline, and the FAQ pairs. Copy is authored once here for both languages; components read from it and never hardcode strings.
+  - **Home components** (`src/components/`): `Hero.astro`, `IdentityPillars.astro`, `CaseIndex.astro`, `InvestmentSummary.astro`, `Timeline.astro`, `ContactBlock.astro`, and `Faq.astro`. Each takes `lang: Locale` (except `Faq.astro`, which takes `items: FaqItem[]` directly). `CaseIndex.astro` queries the per-language content collection (`workZh`/`workEn`), sorts by `entry.data.order`, and links each entry to `/${lang}/work/${entry.id}/`, so it renders correctly against whatever is in the collection (the current fixture, or the real case studies once they land). `Faq.astro` renders visible, zero-JS `<details open>` Q&A — the answer text ships in the served HTML (crawlable, not JS-gated).
+
 ## GEO (Generative Engine Optimization) endpoints
 
 Build-time API route endpoints under `src/pages/`, emitted into `dist/` by `astro build`:

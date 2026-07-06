@@ -1,0 +1,219 @@
+---
+// src/components/CaseIndex.astro
+// The case-study index — an editorial contents list, not a card grid. Each row
+// is one shipped system: a mono index, the title, a one-line summary, and (when
+// present) the headline metric set in the instrument voice. Rows link through
+// to the full case study. Queries the per-language collection and orders by the
+// authored `order`, so it works against whatever is in the collection today
+// (the fixture) or the five real case studies once they land.
+import type { Locale } from '../i18n/utils';
+import { getCollection } from 'astro:content';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+
+const collection = lang === 'zh' ? 'workZh' : 'workEn';
+// Exclude fixtures/drafts (ids beginning with `_`, e.g. the `_fixture` entry
+// that keeps the collection valid before the real case studies land). Real
+// case studies use plain ids, so they render as soon as they exist; until then
+// the section falls through to its honest empty state rather than parading a
+// self-labeled placeholder on the flagship page's primary evidence surface.
+const entries = (await getCollection(collection))
+  .filter((entry) => !entry.id.startsWith('_'))
+  .sort((a, b) => a.data.order - b.data.order);
+
+const copy = {
+  zh: { heading: '精选案例', kicker: '案例', view: '阅读案例', empty: '案例即将上线。' },
+  en: { heading: 'Selected work', kicker: 'Case', view: 'Read case study', empty: 'Case studies coming soon.' },
+}[lang];
+---
+
+<section class="cases" aria-labelledby="cases-heading">
+  <div class="container">
+    <div class="cases__header">
+      <h2 class="cases__heading" id="cases-heading">{copy.heading}</h2>
+      <span class="cases__count label-mono" aria-hidden="true">
+        {String(entries.length).padStart(2, '0')}
+      </span>
+    </div>
+
+    {entries.length === 0 ? (
+      <p class="cases__empty">{copy.empty}</p>
+    ) : (
+      <ol class="cases__list">
+        {entries.map((entry, i) => {
+          const metric = entry.data.metrics?.[0];
+          return (
+            <li class="case">
+              <a class="case__link" href={`/${lang}/work/${entry.id}/`}>
+                <span class="case__index" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+
+                <span class="case__main">
+                  <span class="case__title">{entry.data.title}</span>
+                  <span class="case__summary">{entry.data.summary}</span>
+                </span>
+
+                {metric && (
+                  <span class="case__metric" aria-label={`${metric.label}: ${metric.value}`}>
+                    <span class="case__metric-value">{metric.value}</span>
+                    <span class="case__metric-label">{metric.label}</span>
+                  </span>
+                )}
+
+                <span class="case__cue" aria-hidden="true">
+                  <span class="case__view">{copy.view}</span>
+                  <span class="case__arrow">&#8594;</span>
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    )}
+  </div>
+</section>
+
+<style>
+  .cases {
+    padding-block: var(--space-2xl);
+    border-top: 1px solid var(--color-hairline);
+  }
+
+  .cases__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+  .cases__heading { font-size: var(--text-h2); }
+  .cases__count { color: var(--color-faint); }
+
+  .cases__empty {
+    color: var(--color-muted);
+    font-size: var(--text-lead);
+  }
+
+  .cases__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .case {
+    border-top: 1px solid var(--color-hairline);
+  }
+  .case:last-child { border-bottom: 1px solid var(--color-hairline); }
+
+  /* The whole row is the link. Grid: index rail · title+summary · metric · cue.
+     Stacks on narrow screens; the metric drops below the title. */
+  .case__link {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'index main'
+      'index metric'
+      'index cue';
+    align-items: baseline;
+    gap: 0.35rem var(--space-md);
+    padding-block: var(--space-lg);
+    text-decoration: none;
+    color: var(--color-ink);
+    transition: background-color var(--dur-fast) var(--ease-out-quart);
+  }
+  .case__link:hover { background: var(--color-surface); }
+  .case__link:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+    border-radius: 4px;
+  }
+
+  .case__index {
+    grid-area: index;
+    align-self: start;
+    padding-top: 0.15em;
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    color: var(--color-faint);
+  }
+
+  .case__main { grid-area: main; display: flex; flex-direction: column; gap: 0.35rem; }
+  .case__title {
+    font-size: var(--text-h3);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  :global(:lang(zh)) .case__title { letter-spacing: 0; }
+  .case__link:hover .case__title { color: var(--color-primary); }
+  .case__summary {
+    color: var(--color-muted);
+    font-size: var(--text-body);
+    line-height: 1.55;
+    max-width: var(--measure);
+    text-wrap: pretty;
+  }
+
+  /* Headline metric — instrument voice: mono value, faint label. */
+  .case__metric {
+    grid-area: metric;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+  }
+  .case__metric-value {
+    font-family: var(--font-mono);
+    font-size: var(--text-body);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    color: var(--color-ink);
+  }
+  .case__metric-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    letter-spacing: 0.02em;
+    color: var(--color-faint);
+  }
+
+  .case__cue {
+    grid-area: cue;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--color-muted);
+  }
+  .case__arrow { transition: transform var(--dur) var(--ease-out-quart); }
+  .case__link:hover .case__cue { color: var(--color-primary); }
+  .case__link:hover .case__arrow { transform: translateX(3px); }
+
+  /* Desktop: pull the metric + cue into a right-hand rail beside the title. */
+  @media (min-width: 48rem) {
+    .case__link {
+      grid-template-columns: 3rem minmax(0, 1fr) auto;
+      grid-template-areas:
+        'index main metric'
+        'index main cue';
+      align-items: start;
+      column-gap: var(--space-xl);
+    }
+    .case__index { font-size: var(--text-body); }
+    .case__metric { margin-top: 0.35rem; justify-content: flex-end; text-align: right; }
+    .case__cue { margin-top: var(--space-sm); justify-content: flex-end; }
+  }
+</style>

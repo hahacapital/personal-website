@@ -1,0 +1,183 @@
+---
+// src/components/ContactBlock.astro
+// The closing region of the Home page: the visible FAQ (Q&A that doubles as the
+// human-readable source for the page-level FAQ JSON-LD), then a direct contact
+// ledger + primary CTA so a convinced visitor can start a conversation without
+// hunting. The contact channels reuse the Footer's mono-ledger system (email as
+// mailto, WeChat as plain identifier) so the "instrument voice" stays coherent
+// site-wide. This is NOT the site footer — it's the on-page call to action.
+import type { Locale } from '../i18n/utils';
+import { useTranslations, getLocalizedPath } from '../i18n/utils';
+import { siteConfig } from '../data/site';
+import { homeContent } from '../data/home-content';
+import Faq from './Faq.astro';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const { faqs } = homeContent[lang];
+
+const copy = {
+  zh: {
+    faqHeading: '常见问题',
+    ctaHeading: '有一个 AI Agent 项目？',
+    ctaBody: '正在寻找短期嵌入式项目合作。用一句话说明你的场景，我会亲自回复。',
+    emailLabel: '邮箱',
+    wechatLabel: '微信',
+  },
+  en: {
+    faqHeading: 'Common questions',
+    ctaHeading: 'Have an AI Agent project?',
+    ctaBody: 'Available for short-term embedded engagements. Send one line about your situation and I’ll reply personally.',
+    emailLabel: 'Email',
+    wechatLabel: 'WeChat',
+  },
+}[lang];
+
+const discussHref = getLocalizedPath('/contact/', lang);
+---
+
+<section class="contact" aria-labelledby="contact-heading">
+  <div class="container contact__inner">
+    {faqs.length > 0 && (
+      <div class="contact__faq">
+        <h2 class="contact__faq-heading" id="faq-heading">{copy.faqHeading}</h2>
+        <Faq items={faqs} />
+      </div>
+    )}
+
+    <div class="contact__cta">
+      <h2 class="contact__cta-heading" id="contact-heading">{copy.ctaHeading}</h2>
+      <p class="contact__cta-body">{copy.ctaBody}</p>
+
+      <a class="contact__button" href={discussHref}>
+        {t('cta.discuss')}
+        <span class="contact__button-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+
+      <dl class="contact__ledger">
+        <div class="contact__row">
+          <dt class="contact__key">{copy.emailLabel}</dt>
+          <dd class="contact__val">
+            <a class="contact__link" href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
+          </dd>
+        </div>
+        <div class="contact__row">
+          <dt class="contact__key">{copy.wechatLabel}</dt>
+          <dd class="contact__val contact__val--plain">{siteConfig.wechat}</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact {
+    padding-block: var(--space-2xl);
+    border-top: 1px solid var(--color-hairline);
+  }
+
+  .contact__inner {
+    display: grid;
+    gap: var(--space-2xl);
+  }
+
+  @media (min-width: 52rem) {
+    .contact__inner {
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      column-gap: clamp(2.5rem, 1rem + 6vw, 5rem);
+      align-items: start;
+    }
+  }
+
+  .contact__faq-heading,
+  .contact__cta-heading {
+    font-size: var(--text-h2);
+  }
+  .contact__faq-heading { margin-bottom: var(--space-md); }
+
+  /* -- CTA card ------------------------------------------------------------- */
+  .contact__cta {
+    /* A quiet inset panel — surface tint + hairline, the one place a panel earns
+       its keep, since it's the "act now" moment. Not a card grid. */
+    padding: clamp(1.5rem, 1rem + 2vw, 2.25rem);
+    background: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: 12px;
+  }
+  .contact__cta-heading { text-wrap: balance; }
+  .contact__cta-body {
+    margin-top: var(--space-sm);
+    max-width: 42ch;
+    color: var(--color-muted);
+    font-size: var(--text-body);
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+
+  .contact__button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: var(--space-lg);
+    min-height: 2.75rem;
+    padding: 0.65rem 1.15rem;
+    border-radius: 8px;
+    background: var(--color-primary);
+    color: var(--color-bg);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+      background-color var(--dur) var(--ease-out-quart),
+      transform var(--dur) var(--ease-out-quart);
+  }
+  .contact__button:hover { background: var(--color-primary-hover); }
+  .contact__button:active { transform: translateY(1px); }
+  .contact__button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+  .contact__button-arrow { transition: transform var(--dur) var(--ease-out-quart); }
+  .contact__button:hover .contact__button-arrow { transform: translateX(3px); }
+
+  /* -- Contact ledger (mono identifiers) ----------------------------------- */
+  .contact__ledger {
+    margin: var(--space-lg) 0 0;
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--color-hairline);
+    display: grid;
+    gap: var(--space-sm);
+  }
+  .contact__row {
+    display: grid;
+    grid-template-columns: 4rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--space-sm);
+  }
+  .contact__key {
+    margin: 0;
+    font-size: var(--text-caption);
+    color: var(--color-faint);
+  }
+  .contact__val {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    word-break: break-word;
+    color: var(--color-ink);
+  }
+  .contact__link {
+    color: var(--color-ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-hairline);
+    padding-bottom: 1px;
+    transition:
+      color var(--dur-fast) var(--ease-out-quart),
+      border-color var(--dur-fast) var(--ease-out-quart);
+  }
+  .contact__link:hover { color: var(--color-primary); border-color: var(--color-primary); }
+  .contact__link:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+</style>

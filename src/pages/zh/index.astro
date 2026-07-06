@@ -1,0 +1,36 @@
+---
+// src/pages/zh/index.astro
+// The Simplified-Chinese Home page. Section order matches spec §4.1:
+// Hero → IdentityPillars → CaseIndex → InvestmentSummary → Timeline → ContactBlock.
+// FAQ JSON-LD is emitted here at the page level (the Faq component renders only
+// the human-readable Q&A), sourced from the same home-content.ts as the visible
+// copy so structured data and page never drift.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Hero from '../../components/Hero.astro';
+import IdentityPillars from '../../components/IdentityPillars.astro';
+import CaseIndex from '../../components/CaseIndex.astro';
+import InvestmentSummary from '../../components/InvestmentSummary.astro';
+import Timeline from '../../components/Timeline.astro';
+import ContactBlock from '../../components/ContactBlock.astro';
+import { homeContent } from '../../data/home-content';
+import { buildFaqJsonLd } from '../../lib/geo';
+
+const lang = 'zh' as const;
+
+const title = '张翼翔 · 独立 Forward Deployed Engineer | 企业 AI Agent 落地';
+const description =
+  '独立 Forward Deployed Engineer,帮企业把 AI Agent 从 demo 做到生产环境;同时运营系统化的量化与投资研究实践。10 年工程经验,可洽谈短期嵌入式项目合作。';
+
+const jsonLd = [buildFaqJsonLd(homeContent[lang].faqs)].filter(
+  (block): block is Record<string, unknown> => block !== null
+);
+---
+
+<BaseLayout lang={lang} title={title} description={description} path="" jsonLd={jsonLd}>
+  <Hero lang={lang} />
+  <IdentityPillars lang={lang} />
+  <CaseIndex lang={lang} />
+  <InvestmentSummary lang={lang} />
+  <Timeline lang={lang} />
+  <ContactBlock lang={lang} />
+</BaseLayout>
