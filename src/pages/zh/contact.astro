@@ -1,0 +1,19 @@
+---
+// src/pages/zh/contact.astro
+// The Simplified-Chinese Contact page: intro line → direct contact ledger
+// (email/WeChat) → résumé (PDF download). All markup/styles live in
+// ContactBody; this file just wires BaseLayout with the real title/description
+// for this route.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContactBody from '../../components/ContactBody.astro';
+
+const lang = 'zh' as const;
+
+const title = '联系张翼翔 · 独立 Forward Deployed Engineer';
+const description =
+  '联系张翼翔，洽谈 AI Agent 项目落地合作：邮箱与微信联系方式，以及可下载的中文简历（PDF）。';
+---
+
+<BaseLayout lang={lang} title={title} description={description} path="contact">
+  <ContactBody lang={lang} />
+</BaseLayout>

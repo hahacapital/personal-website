@@ -13,9 +13,12 @@ import LanguageSwitcher from './LanguageSwitcher.astro';
 
 interface Props {
   lang: Locale;
+  // Forwarded to LanguageSwitcher — see its own comment. Optional, undefined
+  // by default, so every existing call site is unaffected.
+  altHref?: string;
 }
 
-const { lang } = Astro.props;
+const { lang, altHref } = Astro.props;
 const t = useTranslations(lang);
 
 const home = getLocalizedPath('/', lang);
@@ -74,7 +77,7 @@ function isActive(href: string): boolean {
         </ul>
       </nav>
 
-      <LanguageSwitcher lang={lang} />
+      <LanguageSwitcher lang={lang} altHref={altHref} />
     </div>
   </div>
 </header>

@@ -66,13 +66,31 @@ export interface HreflangLink {
   href: string;
 }
 
-export function buildHreflangLinks(slug: string, baseUrl: string): HreflangLink[] {
+// `availableLocales` defaults to both — every page this project has shipped
+// through Task 12 has a symmetric zh+en counterpart, so this default
+// reproduces the exact previous output byte-for-byte. A page that exists in
+// only one locale (e.g. the English-only /en/resume/ — the zh side links
+// straight to a PDF instead, per that page's own scope note) passes a
+// narrower list so it never advertises an alternate/x-default URL that
+// doesn't actually build; falling back to a dead link is worse than omitting
+// the annotation entirely.
+export function buildHreflangLinks(
+  slug: string,
+  baseUrl: string,
+  availableLocales: readonly ('zh' | 'en')[] = ['zh', 'en']
+): HreflangLink[] {
   const suffix = slug ? `${slug}/` : '';
   const zhHref = `${baseUrl}/zh/${suffix}`;
   const enHref = `${baseUrl}/en/${suffix}`;
-  return [
-    { hreflang: 'zh', href: zhHref },
-    { hreflang: 'en', href: enHref },
-    { hreflang: 'x-default', href: zhHref },
-  ];
+  const hasZh = availableLocales.includes('zh');
+  const hasEn = availableLocales.includes('en');
+
+  const links: HreflangLink[] = [];
+  if (hasZh) links.push({ hreflang: 'zh', href: zhHref });
+  if (hasEn) links.push({ hreflang: 'en', href: enHref });
+  // x-default prefers zh (the site's default locale, see i18n/utils.ts) when
+  // it exists — a no-op for every symmetric page — and falls back to en only
+  // when a page has opted out of zh entirely.
+  links.push({ hreflang: 'x-default', href: hasZh ? zhHref : enHref });
+  return links;
 }

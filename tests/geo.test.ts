@@ -65,4 +65,12 @@ describe('buildHreflangLinks', () => {
       { hreflang: 'x-default', href: 'https://yixiangzhang.com/zh/' },
     ]);
   });
+
+  it('omits the zh alternate/x-default for an English-only page (e.g. /en/resume/)', () => {
+    const links = buildHreflangLinks('resume', 'https://yixiangzhang.com', ['en']);
+    expect(links).toEqual([
+      { hreflang: 'en', href: 'https://yixiangzhang.com/en/resume/' },
+      { hreflang: 'x-default', href: 'https://yixiangzhang.com/en/resume/' },
+    ]);
+  });
 });

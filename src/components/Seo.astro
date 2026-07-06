@@ -9,11 +9,15 @@ interface Props {
   description: string;
   path: string;
   jsonLd?: Record<string, unknown>[];
+  // Optional: restrict which locales this exact path advertises via hreflang
+  // (defaults to both — every page has a symmetric counterpart). Only an
+  // asymmetric page like /en/resume/ (no zh counterpart) needs to pass this.
+  alternateLocales?: ('zh' | 'en')[];
 }
 
-const { lang, title, description, path, jsonLd = [] } = Astro.props;
+const { lang, title, description, path, jsonLd = [], alternateLocales } = Astro.props;
 
-const hreflangLinks = buildHreflangLinks(path, siteConfig.siteUrl);
+const hreflangLinks = buildHreflangLinks(path, siteConfig.siteUrl, alternateLocales);
 const canonical = hreflangLinks.find((l) => l.hreflang === lang)!.href;
 
 const personJsonLd = buildPersonJsonLd({

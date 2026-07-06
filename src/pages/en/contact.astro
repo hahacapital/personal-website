@@ -1,0 +1,20 @@
+---
+// src/pages/en/contact.astro
+// The English Contact page: intro line → direct contact ledger (email/WeChat)
+// → résumé (links to the /en/resume/ HTML page, not a PDF — see
+// contact-content.ts / ContactBody.astro for the reasoning). All markup/styles
+// live in ContactBody; this file just wires BaseLayout with the real
+// title/description for this route.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContactBody from '../../components/ContactBody.astro';
+
+const lang = 'en' as const;
+
+const title = 'Contact Yixiang Zhang · Independent Forward Deployed Engineer';
+const description =
+  'Contact Yixiang Zhang about an AI Agent project: email and WeChat, plus an English résumé.';
+---
+
+<BaseLayout lang={lang} title={title} description={description} path="contact">
+  <ContactBody lang={lang} />
+</BaseLayout>

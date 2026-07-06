@@ -10,9 +10,16 @@ import { getLocalizedPath, locales } from '../i18n/utils';
 
 interface Props {
   lang: Locale;
+  // Override the mechanically-derived cross-locale link. Every page except
+  // one has a real counterpart at getLocalizedPath(pathname, otherLocale),
+  // so this is optional and undefined by default. The one exception is
+  // /en/resume/ (no zh counterpart by design — zh links straight to a PDF
+  // instead), which passes the actual zh destination (/zh/contact/) so the
+  // "中" segment never points at a URL nothing builds.
+  altHref?: string;
 }
 
-const { lang } = Astro.props;
+const { lang, altHref } = Astro.props;
 
 // Short, symmetric labels — one glyph each keeps the control compact and
 // balanced across zh/en. Chinese uses the character 中; English uses EN.
@@ -20,12 +27,23 @@ const labels: Record<Locale, string> = { zh: '中', en: 'EN' };
 
 const pathname = Astro.url.pathname;
 
-const segments = locales.map((code) => ({
-  code,
-  label: labels[code],
-  href: getLocalizedPath(pathname, code),
-  current: code === lang,
-}));
+const segments = locales.map((code) => {
+  const isCurrent = code === lang;
+  const usesOverride = !isCurrent && !!altHref;
+  return {
+    code,
+    label: labels[code],
+    href: usesOverride ? (altHref as string) : getLocalizedPath(pathname, code),
+    current: isCurrent,
+    // `rel="alternate" hreflang="…"` asserts "this is the same content in
+    // another language" — true for the mechanically-derived link, but NOT
+    // true when altHref points at a different page (e.g. /zh/contact/ isn't
+    // a translation of /en/resume/), so that annotation is dropped there.
+    // `lang` stays either way: the destination's declared language is
+    // accurate regardless of which page it is.
+    isAlternate: !usesOverride,
+  };
+});
 ---
 
 <nav class="lang" aria-label="Language">
@@ -40,9 +58,9 @@ const segments = locales.map((code) => ({
           <a
             class="lang__seg"
             href={seg.href}
-            hreflang={seg.code}
+            hreflang={seg.isAlternate ? seg.code : undefined}
             lang={seg.code}
-            rel="alternate"
+            rel={seg.isAlternate ? 'alternate' : undefined}
           >
             {seg.label}
           </a>
