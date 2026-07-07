@@ -1,6 +1,6 @@
 # personal-website
 
-Personal portfolio site for Yixiang Zhang — an Astro static site styled with Tailwind CSS v4.
+A bilingual (Chinese/English) personal portfolio site for 张翼翔 / Yixiang Zhang, an independent Forward Deployed Engineer (FDE) who ships enterprise AI Agent systems into production. The site has two jobs: let enterprise decision-makers evaluating outside help on an AI Agent project find him and quickly understand what he does and how to engage him, and be discoverable and citable by mainstream AI assistants and search engines — international (ChatGPT, Claude, Gemini, Perplexity) and domestic Chinese (Doubao, DeepSeek, Qwen, ERNIE Bot, Yuanbao, Kimi) alike — i.e. it is built for Generative Engine Optimization (GEO), not just traditional SEO. His investment/quant research work (`hahacapital`) appears throughout as evidence of AI-and-adjacent-industry fluency, not as a pitch to be hired as an investor. It's an Astro static site styled with Tailwind CSS v4 (see "Tech Stack" below); the full design rationale lives in [`docs/superpowers/specs/2026-07-06-personal-website-design.md`](docs/superpowers/specs/2026-07-06-personal-website-design.md) (the design spec) and [`docs/superpowers/plans/2026-07-06-personal-website.md`](docs/superpowers/plans/2026-07-06-personal-website.md) (the implementation plan this repo was built from, task by task).
 
 ## Tech Stack
 
@@ -8,10 +8,13 @@ Personal portfolio site for Yixiang Zhang — an Astro static site styled with T
 - [Tailwind CSS v4](https://tailwindcss.com), wired via the `@tailwindcss/vite` Vite plugin (no `tailwind.config.js`)
 - [@astrojs/sitemap](https://docs.astro.build/en/guides/integrations-guide/sitemap/) for `sitemap-index.xml` generation, configured with `i18n` locale mapping (`zh` → `zh-CN`, `en` → `en-US`, default `zh`)
 - TypeScript (strict, via `astro/tsconfigs/strict`)
+- [Vitest](https://vitest.dev) for the unit/integration test suite and the full-site build-verification suite (see "Testing")
 
 ## Design Workflow
 
 `PRODUCT.md` at the project root is the strategic brief (register, users, product purpose, brand personality, anti-references, design principles, accessibility) that every [`impeccable`](https://impeccable.style) invocation reads before doing design work. `DESIGN.md` (also at the root) is the resulting visual system — the machine-readable design tokens (colors, typography, the `rounded` radius scale, spacing, component recipes) plus the DESIGN.md-spec body (Overview / Colors / Typography / Elevation / Radius / Components / Do's and Don'ts). New pages should extend `DESIGN.md`'s system, not re-derive it. The `impeccable` Claude Code skill is installed at `.claude/skills/impeccable/` via `npx impeccable install`; it adds `craft`/`shape`/`critique`/`audit`/`polish`/etc. commands plus a UI anti-pattern-detection hook. Re-run `npx impeccable install` (or `npx impeccable update`) to refresh the skill; `.claude/settings.local.json`, which the installer also writes for the detection hook, is intentionally not committed (local-only, matching this machine's global gitignore convention for that file).
+
+**For any future visual change, `PRODUCT.md`/`DESIGN.md` are the source of truth, and `impeccable` (`craft`/`shape`/`critique`/`audit`/`polish`) is the primary tool for executing it** — the same workflow that produced the current design. `taste-skill` (installed on demand via `npx skills add https://github.com/Leonxlnx/taste-skill`) can be run as a secondary, non-authoritative cross-check during a final polish pass, the way it was used in the visual-polish task on the Home page — but it is not committed to this repo (gitignored, local-only install) and its opinions defer to a settled `DESIGN.md` decision when the two disagree (e.g. it flags em dashes as a generic tell; this project's editorial voice deliberately uses them, so that flag was correctly overridden rather than "fixed").
 
 ## Design System
 
@@ -42,6 +45,31 @@ The shared shell lives in `src/layouts/BaseLayout.astro` (props `{ lang, title, 
 
 - **English résumé** — `src/pages/en/resume.astro` (`path="resume"`), a standalone, semantic HTML résumé rather than a generated PDF (no font-embedding/print-fidelity pipeline for marginal benefit, and better for GEO than a PDF text layer — a crawler/AI assistant parses HTML more reliably, and any visitor who wants a PDF can print the page). Reuses `aboutContent.en`'s `narrative`/`education` verbatim rather than inventing new copy; styled with a `.prose`-equivalent recipe matching `CaseStudyLayout`'s body typography (measure, line-height, heading/paragraph rhythm). **This is the site's one locale-asymmetric page** — zh has no HTML counterpart; `/zh/contact/` links straight to the PDF instead — so it opts into `BaseLayout`'s `alternateLocales={['en']}` (stops `Seo.astro`/`buildHreflangLinks` from advertising a zh hreflang/x-default alternate that wouldn't build) and `langAltHref="/zh/contact/"` (points the header's "中" language-switch link at the real zh equivalent instead of a mechanically-derived dead link to a nonexistent `/zh/resume/`).
 
+## Content Structure
+
+Each case study is one Markdown file per locale — `src/content/work/zh/*.md` and `src/content/work/en/*.md` (five per language today) — validated against a shared `workSchema` (defined once in `src/content.config.ts` and reused by both the `workZh` and `workEn` collections):
+
+| Field | Type | Used for |
+| --- | --- | --- |
+| `title` | `string` | The page `<h1>` in `CaseStudyLayout` |
+| `summary` | `string` | The lead paragraph under the title, and the `Article` JSON-LD description |
+| `order` | `number` | Sort order for `CaseIndex.astro` on Home and the `/work/` index (ascending) |
+| `metrics` | `{ label: string, value: string }[]` | The results-plate value·label readout |
+| `faqs` | `{ question: string, answer: string }[]` — optional, defaults to `[]` | Rendered via `Faq.astro`; emits `FAQPage` JSON-LD when non-empty |
+| `updatedDate` | coercible date, e.g. `2026-07-06` | The "Updated" byline, and both `datePublished`/`dateModified` in the `Article` JSON-LD |
+
+The Markdown body below the frontmatter becomes the case study's prose, rendered through the shared `.prose` type system in `CaseStudyLayout.astro`.
+
+**To add a 6th case study, no code changes are needed:**
+
+1. Pick a slug — the filename without extension, e.g. `new-case-study` — which becomes the URL in both locales: `/zh/work/new-case-study/` and `/en/work/new-case-study/`.
+2. Add `src/content/work/zh/new-case-study.md` **and** `src/content/work/en/new-case-study.md` (same filename in both folders), each with frontmatter matching the `workSchema` table above and a Markdown body written in that locale's language.
+3. That's it — `getStaticPaths()` in `src/pages/{zh,en}/work/[slug].astro` maps over the `workZh`/`workEn` collections at build time, so the new entry gets its own static page automatically, and `CaseIndex.astro` picks it up on Home and the `/work/` index too, sorted by `order`.
+
+Two safety nets worth knowing about:
+- `tests/content-schema.test.ts` asserts the `workZh` and `workEn` collections have exactly matching ids, so adding a case study to only one locale fails `npm test` instead of silently shipping an unbalanced site.
+- An entry whose id (filename) begins with `_` is treated as a draft: it still builds a page, but `CaseIndex.astro` excludes it from the listing — useful for staging a work-in-progress case study without publishing it to the index yet.
+
 ## GEO (Generative Engine Optimization) endpoints
 
 Build-time API route endpoints under `src/pages/`, emitted into `dist/` by `astro build`:
@@ -50,6 +78,8 @@ Build-time API route endpoints under `src/pages/`, emitted into `dist/` by `astr
 - `sitemap-index.xml` (+ `sitemap-0.xml`) — generated by `@astrojs/sitemap`.
 - `llms.txt` — a short summary of the site (background, case studies, resources) for LLM consumption, derived from `siteConfig` (`src/data/site.ts`) and the `workEn` content collection.
 - `llms-full.txt` — a fuller per-case-study reference (summary + metrics + the raw Markdown body via `entry.body`) derived from the same `workEn` collection, so an AI agent gets the full write-up inline without an extra fetch.
+
+These four files are the concrete implementation of the site's GEO strategy. For the reasoning behind them — why these specific files, why allow AI crawlers at all, the structured-data/FAQ choices, and the sources consulted — see [design spec §6, "GEO Technical Implementation"](docs/superpowers/specs/2026-07-06-personal-website-design.md#6-geo-technical-implementation).
 
 ## Getting Started
 
@@ -60,16 +90,37 @@ npm run dev
 
 The dev server runs at `http://localhost:4321` by default.
 
+```bash
+npm run build
+```
+
+Runs `astro build` and produces the static site in `dist/` — 20 pages (every core page in both locales, both `/work/` index pages, all 5 case studies × 2 locales, plus the English résumé page) and the GEO endpoints described below. Preview that production build locally with `npm run preview`.
+
 ## Testing
 
 ```bash
 npm test
 ```
 
-Runs the Vitest suite (`tests/**/*.test.ts`). Content collections (`src/content.config.ts`) are backed by Astro's content layer, which only loads markdown files into its data store when `astro sync`/`astro build`/`astro dev` runs — Vitest does not trigger that on its own. A Vitest `globalSetup` (`vitest.global-setup.ts`) runs `astro sync` automatically before any test file executes, so `npm test`, `npx vitest run`, and `npx vitest run tests/some-file.test.ts` all work with no manual setup step. This requires `cacheDir: './.astro/'` in `astro.config.mjs` so the CLI sync and Vitest agree on where the data store lives.
+(equivalently `npm run test`). Runs the Vitest suite (`tests/**/*.test.ts` — 5 files, 30 tests as of this writing). Content collections (`src/content.config.ts`) are backed by Astro's content layer, which only loads markdown files into its data store when `astro sync`/`astro build`/`astro dev` runs — Vitest does not trigger that on its own. A Vitest `globalSetup` (`vitest.global-setup.ts`) runs `astro sync` automatically before any test file executes, so `npm test`, `npx vitest run`, and `npx vitest run tests/some-file.test.ts` all work with no manual setup step. This requires `cacheDir: './.astro/'` in `astro.config.mjs` so the CLI sync and Vitest agree on where the data store lives.
 
 `tests/build.test.ts` is a full-site build verification suite: its `beforeAll` shells out to `npm run build` (real `astro build`, up to 180s) and then asserts on the contents of `dist/` — GEO artifacts (`robots.txt`, `llms.txt`/`llms-full.txt` including a content-depth check that the latter inlines real case-study body prose rather than just frontmatter, `sitemap-index.xml`), full page coverage (every core page, both `/work/` index pages, and all 5 case studies in each of `zh`/`en`), Article/FAQPage/Person structured data on every case study page, and hreflang cross-linking between locale counterparts. It is slower than the rest of the suite because it performs a full production build.
 
 ## Before Going Live
 
-The `site` field in `astro.config.mjs` is provisionally set to `https://yixiangzhang.com` (not yet registered). Replace it with the real registered domain once available.
+Three things remain before this becomes the live, public site. None of them can be scripted — each needs either a domain purchase or the user's own third-party account — so they're manual, one-time steps:
+
+1. **Register a domain and replace the provisional URL everywhere it's hardcoded.** The canonical site URL is currently the placeholder `https://yixiangzhang.com` (not yet registered), and it lives in exactly two places that must **both** be updated together once a real domain exists:
+   - `src/data/site.ts` → `siteConfig.siteUrl`, consumed by `Seo.astro` and `CaseStudyLayout.astro` for canonical URLs, `hreflang` alternates, and the `Person`/`Article`/`FAQPage` JSON-LD `url` fields.
+   - `astro.config.mjs` → the top-level `site` option, which `@astrojs/sitemap` requires in order to emit absolute URLs into `sitemap-index.xml`/`sitemap-0.xml` — the integration needs to know the deployed origin to build a sitemap at all.
+
+   These are two independent literals that currently happen to match; updating only one will leave the other silently stale.
+
+2. **Deploy to Cloudflare Pages or Vercel** — either works for this static-output Astro site, and both offer a free tier with auto-deploy on push:
+   - **Build command:** `npm run build`
+   - **Output directory:** `dist`
+   - Cloudflare Pages: connect the Git repo and enter those two settings in the dashboard — see [Cloudflare's Astro framework guide](https://developers.cloudflare.com/pages/framework-guides/deploy-an-astro-site/), which documents build command `npm run build` / build output directory `dist` for Astro projects.
+   - Vercel: import the Git repo — Vercel auto-detects Astro and configures the equivalent settings itself (see [Astro's Vercel deployment guide](https://docs.astro.build/en/guides/deploy/vercel/)); no adapter or `vercel.json` is needed for a static-output site like this one.
+   - Ship first to the platform's default subdomain, then attach the custom domain once step 1 is done.
+
+3. **Manually submit the sitemap** (`https://<your-domain>/sitemap-index.xml`) to [Google Search Console](https://search.google.com/search-console), [Bing Webmaster Tools](https://www.bing.com/webmasters), and [Baidu 站长平台](https://ziyuan.baidu.com/). Each requires signing in with the user's own account, so this can't be automated as part of the build — it's a manual, post-launch step. See [design spec §6](docs/superpowers/specs/2026-07-06-personal-website-design.md#6-geo-technical-implementation) for why this matters for GEO/SEO discoverability.
