@@ -22,3 +22,27 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# impeccable design-hook local cache (per-session edit state; not shipped).
+# The critique/ snapshots under .impeccable/ stay tracked as design-review history.
+.impeccable/hook.cache.json
+
+# taste-skill (Task 20 secondary, non-authoritative design cross-check tool).
+# Installed locally as a second opinion against impeccable's DESIGN.md (the
+# system of record); not part of the shipped site, so kept out of the repo.
+# The tracked impeccable skill under .claude/skills/impeccable/ is unaffected.
+.agents/
+.claude/skills/brandkit
+.claude/skills/design-taste-frontend
+.claude/skills/design-taste-frontend-v1
+.claude/skills/full-output-enforcement
+.claude/skills/gpt-taste
+.claude/skills/high-end-visual-design
+.claude/skills/image-to-code
+.claude/skills/imagegen-frontend-mobile
+.claude/skills/imagegen-frontend-web
+.claude/skills/industrial-brutalist-ui
+.claude/skills/minimalist-ui
+.claude/skills/redesign-existing-projects
+.claude/skills/stitch-design-taste
+skills-lock.json
