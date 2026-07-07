@@ -96,8 +96,14 @@ function isActive(href: string): boolean {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-lg);
+    /* Tight on the narrowest phones so the wider English wordmark + the labeled
+       menu toggle + the switcher never push past the gutter; opens up once
+       there's room. */
+    gap: var(--space-md);
     min-height: var(--nav-h);
+  }
+  @media (min-width: 26rem) {
+    .masthead__inner { gap: var(--space-lg); }
   }
 
   /* -- Wordmark ------------------------------------------------------------ */
@@ -113,7 +119,7 @@ function isActive(href: string): boolean {
     align-self: center;
     width: 0.5rem;
     height: 0.5rem;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: var(--color-primary);
     /* the one machined dial: the only always-on coral on the page */
     box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-primary) 16%, transparent);
@@ -125,13 +131,21 @@ function isActive(href: string): boolean {
     letter-spacing: -0.01em;
   }
   :global(:lang(zh)) .wordmark__name { letter-spacing: 0.02em; }
+  /* The mono "FDE" tag is supporting metadata, not the wordmark itself. On the
+     narrowest phones the wider English name ("Yixiang Zhang" vs "张翼翔") plus
+     the labeled toggle + switcher would otherwise overrun the gutter, so the
+     tag drops below 26rem and returns as soon as there's room. */
   .wordmark__role {
+    display: none;
     font-family: var(--font-mono);
     font-size: 0.6875rem;
     font-weight: 500;
     letter-spacing: 0.08em;
     color: var(--color-faint);
     padding-bottom: 0.1em;
+  }
+  @media (min-width: 26rem) {
+    .wordmark__role { display: inline; }
   }
 
   .masthead__end {
@@ -148,9 +162,10 @@ function isActive(href: string): boolean {
     gap: 0.5rem;
     cursor: pointer;
     list-style: none;
+    min-height: 2.75rem;      /* 44px comfortable touch target (WCAG 2.5.5) */
     padding: 0.4rem 0.6rem;
     border: 1px solid var(--color-hairline);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     font-size: var(--text-sm);
     font-weight: 500;
     color: var(--color-ink);
@@ -171,11 +186,21 @@ function isActive(href: string): boolean {
     width: 1rem;
     height: 1.5px;
     background: currentColor;
-    border-radius: 2px;
+    border-radius: var(--radius-xs);
   }
   .nav-toggle__bars { position: relative; }
   .nav-toggle__bars::before { position: absolute; top: -5px; }
   .nav-toggle__bars::after { position: absolute; top: 5px; }
+
+  /* On the narrowest phones (≤22rem, e.g. a 320px iPhone SE) the labeled
+     toggle + switcher + wordmark won't all fit on one row, so the visible
+     "Menu" word collapses to just the icon. The accessible name is preserved
+     via aria-label on the summary, so nothing is lost for AT users; the label
+     returns above 22rem where it earns its clarity for first-time visitors. */
+  @media (max-width: 22rem) {
+    .nav-toggle__label { display: none; }
+    .nav-toggle { gap: 0; }
+  }
 
   /* -- Primary nav (mobile: popover panel, hidden until toggle open) ------- */
   .primary-nav {
@@ -186,7 +211,7 @@ function isActive(href: string): boolean {
     padding: 0.5rem;
     background: var(--color-bg);
     border: 1px solid var(--color-hairline);
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     box-shadow: 0 12px 30px -12px color-mix(in oklch, var(--color-ink) 30%, transparent);
     z-index: var(--z-overlay);
     /* hidden by default on mobile; revealed when the sibling <details> opens */
@@ -215,7 +240,7 @@ function isActive(href: string): boolean {
   .primary-nav__link {
     display: block;
     padding: 0.55rem 0.75rem;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     text-decoration: none;
     font-size: var(--text-sm);
     font-weight: 500;
@@ -273,7 +298,7 @@ function isActive(href: string): boolean {
       bottom: -0.35rem;
       height: 2px;
       background: var(--color-primary);
-      border-radius: 2px;
+      border-radius: var(--radius-xs);
     }
   }
 </style>

@@ -141,7 +141,7 @@ const year = new Date().getFullYear();
   .wordmark__dot {
     width: 0.5rem;
     height: 0.5rem;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: var(--color-primary);
     flex: none;
   }
@@ -162,7 +162,7 @@ const year = new Date().getFullYear();
     gap: 0.5rem;
     margin-top: var(--space-lg);
     padding: 0.65rem 1.1rem;
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     background: var(--color-primary);
     color: var(--color-bg);
     font-weight: 500;
@@ -221,7 +221,10 @@ const year = new Date().getFullYear();
     font-size: var(--text-sm);
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.01em;
-    word-break: break-word;
+    /* Long identifiers (the email) break only when they must, and on a
+       character boundary rather than mid-word by default — matches the
+       ContactBody ledger convention. */
+    overflow-wrap: anywhere;
     color: var(--color-ink);
   }
   .ledger__val--plain { color: var(--color-ink); }
@@ -249,7 +252,7 @@ const year = new Date().getFullYear();
     transition: color var(--dur-fast) var(--ease-out-quart);
   }
   .footer-nav__link:hover { color: var(--color-ink); }
-  .footer-nav__link:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: 3px; }
+  .footer-nav__link:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: var(--radius-xs); }
 
   /* -- Baseline ------------------------------------------------------------ */
   .site-footer__baseline {

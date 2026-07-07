@@ -201,14 +201,23 @@ const hasFaqs = faqs.length > 0;
   @media (min-width: 34rem) {
     .cs-results__plate {
       grid-auto-flow: column;
-      grid-auto-columns: max-content;
+      /* Cap each column so a long text value (e.g. "Alipay / WeChat Pay / USDT"
+         or "Dedicated VPC / EKS / Aurora stack") wraps instead of forcing the
+         plate wider than the container; short numeric metrics still hug their
+         content. */
+      grid-auto-columns: fit-content(14rem);
+      column-gap: var(--space-xl);
       align-items: start;
     }
     /* Hairline rules BETWEEN metrics (not a box around each). */
     .cs-metric + .cs-metric {
-      padding-left: var(--space-2xl);
+      padding-left: var(--space-xl);
       border-left: 1px solid var(--color-hairline);
     }
+  }
+  @media (min-width: 56rem) {
+    .cs-results__plate { column-gap: var(--space-2xl); }
+    .cs-metric + .cs-metric { padding-left: var(--space-2xl); }
   }
 
   .cs-metric {
@@ -222,11 +231,16 @@ const hasFaqs = faqs.length > 0;
     font-family: var(--font-sans);
     font-size: var(--text-h3);
     font-weight: 600;
-    line-height: 1.05;
+    line-height: 1.1;
     letter-spacing: -0.01em;
     font-variant-numeric: tabular-nums;
     color: var(--color-ink);
-    text-wrap: balance;
+    /* `pretty`, not `balance`: several metric values are short text phrases
+       ("Live, revenue-generating", "Alipay / WeChat Pay / USDT"), and balance
+       would break a comma onto its own line ("Live ,"). pretty keeps runs intact
+       and only guards the last-line orphan, which reads correctly for phrases
+       and is fine for the short numeric values too. */
+    text-wrap: pretty;
   }
   :global(:lang(zh)) .cs-metric__value { letter-spacing: 0; }
 
@@ -342,7 +356,7 @@ const hasFaqs = faqs.length > 0;
     font-size: 0.9em;
     font-variant-numeric: tabular-nums;
     padding: 0.1em 0.35em;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     background: var(--color-surface);
     border: 1px solid var(--color-hairline);
     color: var(--color-ink);
@@ -351,7 +365,7 @@ const hasFaqs = faqs.length > 0;
   .prose :global(pre) {
     margin-top: var(--space-md);
     padding: var(--space-md) var(--space-lg);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     background: var(--color-surface);
     border: 1px solid var(--color-hairline);
     overflow-x: auto;

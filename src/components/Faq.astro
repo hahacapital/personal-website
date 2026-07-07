@@ -1,12 +1,15 @@
 ---
 // src/components/Faq.astro
 // Visible, zero-JS Q&A. Takes the FAQ items directly (not a lang prop) so it can
-// be reused anywhere. Rendered with native <details open>: answers are visible
-// by default (never hidden-until-JS — the copy is always in the served HTML, so
-// AI crawlers and no-JS readers get the full text), and the disclosure is a
-// progressive nicety on top, not a gate. The FAQ *JSON-LD* is emitted at the
-// PAGE level via buildFaqJsonLd — this component only renders the human-readable
-// version, so the two never drift out of a single source (home-content.ts).
+// be reused anywhere. Each item is a native <details open>: the answer is
+// visible by default (never hidden-until-JS — the copy is always in the served
+// HTML, so AI crawlers and no-JS readers get the full text) and the disclosure
+// is a progressive nicety on top, not a gate. <summary> carries the question so
+// the control is keyboard-operable and announced correctly; the whole thing is
+// a plain <details> list rather than a <dl> because dt/dd may not live inside
+// details/summary (invalid content model) and the machine-readable structure is
+// carried separately: the FAQ *JSON-LD* is emitted at the PAGE level via
+// buildFaqJsonLd from the same source (home-content.ts), so the two never drift.
 import type { FaqItem } from '../data/home-content';
 
 interface Props {
@@ -17,19 +20,17 @@ const { items } = Astro.props;
 ---
 
 {items.length > 0 && (
-  <dl class="faq">
+  <div class="faq">
     {items.map((item) => (
-      <div class="faq__item">
-        <details class="faq__disclosure" open>
-          <summary class="faq__q">
-            <dt class="faq__q-text">{item.question}</dt>
-            <span class="faq__icon" aria-hidden="true"></span>
-          </summary>
-          <dd class="faq__a">{item.answer}</dd>
-        </details>
-      </div>
+      <details class="faq__item" open>
+        <summary class="faq__q">
+          <span class="faq__q-text">{item.question}</span>
+          <span class="faq__icon" aria-hidden="true"></span>
+        </summary>
+        <p class="faq__a">{item.answer}</p>
+      </details>
     ))}
-  </dl>
+  </div>
 )}
 
 <style>
@@ -40,16 +41,13 @@ const { items } = Astro.props;
     border-top: 1px solid var(--color-hairline);
   }
 
+  /* Each <details> is one Q&A row, divided by hairlines (no box per item). */
   .faq__item {
     border-bottom: 1px solid var(--color-hairline);
   }
 
-  .faq__disclosure {
-    /* details is a layout container here; the summary + dd do the visual work */
-  }
-
   /* The question is a real <summary> so the disclosure is keyboard-operable and
-     announced correctly; the <dt> inside keeps the definition-list semantics. */
+     announced correctly; the answer <p> follows it inside the same <details>. */
   .faq__q {
     display: flex;
     align-items: flex-start;
@@ -65,7 +63,7 @@ const { items } = Astro.props;
   .faq__q:focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: -2px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
   }
 
   .faq__q-text {
@@ -98,7 +96,7 @@ const { items } = Astro.props;
     width: 1rem;
     height: 1.5px;
     background: currentColor;
-    border-radius: 2px;
+    border-radius: var(--radius-xs);
     transform: translate(-50%, -50%);
     transition: transform var(--dur) var(--ease-out-quart), opacity var(--dur) var(--ease-out-quart);
   }

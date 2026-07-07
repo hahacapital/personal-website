@@ -7,7 +7,7 @@ colors:
   hairline: "oklch(0.9 0.004 45)"
   ink: "oklch(0.235 0.012 45)"
   muted: "oklch(0.52 0.014 45)"
-  faint: "oklch(0.62 0.01 45)"
+  faint: "oklch(0.54 0.013 45)"
   primary: "oklch(0.56 0.17 36)"
   primary-hover: "oklch(0.5 0.165 35)"
   accent: "oklch(0.4 0.07 250)"
@@ -44,6 +44,7 @@ typography:
     letterSpacing: "0.02em"
     fontVariation: "tabular-nums"
 rounded:
+  xs: "2px"
   sm: "4px"
   md: "8px"
   lg: "12px"
@@ -138,7 +139,7 @@ reference only.
 | `hairline` | `oklch(0.9 0.004 45)` | `#e0dddc` | Borders, rules, dividers | — |
 | `ink` | `oklch(0.235 0.012 45)` | `#231c19` | Body + headings | 16.7:1 on bg |
 | `muted` | `oklch(0.52 0.014 45)` | `#706762` | Secondary text, nav | 5.5:1 on bg |
-| `faint` | `oklch(0.62 0.01 45)` | `#8c8481` | Captions, meta, keys | 3.65:1 on bg |
+| `faint` | `oklch(0.54 0.013 45)` | `#756d69` | Captions, meta, keys | 5.1:1 on bg |
 | `primary` | `oklch(0.56 0.17 36)` | `#c3441f` | CTAs, links, focus, dial | 5.0:1 on bg |
 | `primary-hover` | `oklch(0.5 0.165 35)` | `#ad3210` | CTA/link hover | — |
 | `accent` | `oklch(0.4 0.07 250)` | `#284a6c` | Secondary marks | 9.2:1 on bg |
@@ -186,6 +187,17 @@ Shadow is reserved for genuinely floating layers only:
 No shadow scale beyond this; the shell is intentionally paper-flat. Z-index is
 a semantic scale: `--z-sticky: 100` (masthead) < `--z-overlay: 400` (nav
 popover, skip link).
+
+## Radius
+
+The `rounded` scale is mirrored as CSS custom properties in `global.css`
+(`--radius-xs` 2px · `--radius-sm` 4px · `--radius-md` 8px · `--radius-lg` 12px
+· `--radius-pill` 999px) so every component draws from one source rather than
+hardcoding per file. `xs` is the cap on thin rules, ticks, disclosure bars, and
+focus outlines; `md` is the button/CTA and inline-code radius; `lg` is the
+inset panels and the mobile nav popover; `pill` is the language switcher and the
+status/wordmark dots. Buttons and CTAs are always `md` (8px) — no per-component
+drift.
 
 ## Components
 

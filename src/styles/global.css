@@ -28,7 +28,11 @@
   /* Ink ramp (warm near-black -> tertiary) */
   --color-ink: oklch(0.235 0.012 45);       /* body/headings 16.7:1  #231c19 */
   --color-muted: oklch(0.52 0.014 45);      /* secondary text 5.5:1  #706762 */
-  --color-faint: oklch(0.62 0.01 45);       /* captions/meta 3.65:1  #8c8481 */
+  /* faint is the lightest TEXT tier and is used on real labels/keys/meta at
+     ~13px, so it must still clear WCAG AA (4.5:1) on BOTH the white bg and the
+     surface panel — darkened from the old 3.65:1 value to do so (5.1:1 on white,
+     4.65:1 on surface). */
+  --color-faint: oklch(0.54 0.013 45);      /* captions/meta 5.1:1  #756d69 */
 
   /* Brand */
   --color-primary: oklch(0.56 0.17 36);         /* coral 5.0:1 on white #c3441f */
@@ -51,6 +55,16 @@
   --text-h3: clamp(1.375rem, 1.2rem + 0.9vw, 1.75rem);
   --text-h2: clamp(1.75rem, 1.45rem + 1.5vw, 2.5rem);
   --text-h1: clamp(2.375rem, 1.85rem + 2.6vw, 3.75rem);
+
+  /* Corner radius — the DESIGN.md `rounded` scale, promoted to tokens so every
+     component shares one source of truth instead of hardcoding per-file. `xs`
+     (2px) is the cap on thin rules/ticks/bars and focus outlines; sm/md/lg are
+     the 4/8/12 step; pill is fully round (switcher, status dots). */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
 
   /* Spacing (4pt base, fluid section rhythm) */
   --space-2xs: 0.25rem;
@@ -160,7 +174,7 @@ a {
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
 }
 
 /* Skip link — keyboard users land on it first, hidden until focused. */
@@ -173,7 +187,7 @@ a {
   background: var(--color-ink);
   color: var(--color-bg);
   font: 500 var(--text-sm) / 1 var(--font-sans);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition: top var(--dur) var(--ease-out-quart);
 }
 .skip-link:focus-visible {

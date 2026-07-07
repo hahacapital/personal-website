@@ -1,10 +1,9 @@
 ---
 // src/pages/en/work/[slug].astro
-// English case study route. One static page per entry in the workEn collection;
-// the entry's frontmatter fields flow straight into the shared CaseStudyLayout,
-// and the Markdown body renders through <Content /> into the layout's prose
-// slot. Works against whatever is in the collection today (the _fixture
-// placeholder) or the five real case studies once they land.
+// English case study route. One static page per entry in the workEn collection
+// (the five shipped case studies); the entry's frontmatter fields flow straight
+// into the shared CaseStudyLayout, and the Markdown body renders through
+// <Content /> into the layout's prose slot.
 import { getCollection, render } from 'astro:content';
 import CaseStudyLayout from '../../../layouts/CaseStudyLayout.astro';
 

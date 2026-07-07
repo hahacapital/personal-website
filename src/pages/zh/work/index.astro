@@ -1,0 +1,19 @@
+---
+// src/pages/zh/work/index.astro
+// 简体中文 /work/ 索引页 — 导航栏「案例」与首页 Hero「查看案例」按钮的真实落点
+// (此前二者都指向该路径但没有对应页面)。复用现有 CaseIndex 组件的 `page`
+// 变体,案例列表与首页共享同一数据源;仅标题层级(此处为 h1,首页为 h2)与
+// 页头样式不同。
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import CaseIndex from '../../../components/CaseIndex.astro';
+
+const lang = 'zh' as const;
+
+const title = '精选案例 · 张翼翔 — 企业 AI Agent 落地案例';
+const description =
+  '张翼翔的案例:企业级 AI Agent 工厂、真实收费的 AI 投研产品、机构级质押基础设施等——每一个都是真实上线、有具体成果的系统,而非概念演示。';
+---
+
+<BaseLayout lang={lang} title={title} description={description} path="work">
+  <CaseIndex lang={lang} variant="page" />
+</BaseLayout>
