@@ -68,7 +68,7 @@ npm test
 
 Runs the Vitest suite (`tests/**/*.test.ts`). Content collections (`src/content.config.ts`) are backed by Astro's content layer, which only loads markdown files into its data store when `astro sync`/`astro build`/`astro dev` runs — Vitest does not trigger that on its own. A Vitest `globalSetup` (`vitest.global-setup.ts`) runs `astro sync` automatically before any test file executes, so `npm test`, `npx vitest run`, and `npx vitest run tests/some-file.test.ts` all work with no manual setup step. This requires `cacheDir: './.astro/'` in `astro.config.mjs` so the CLI sync and Vitest agree on where the data store lives.
 
-`tests/build.test.ts` is a build smoke test: its `beforeAll` shells out to `npm run build` (real `astro build`, up to 120s) and then asserts on the contents of `dist/` (GEO artifacts today — `robots.txt`, `llms.txt`, `llms-full.txt`, `sitemap-index.xml` — with more assertions added as later tasks add pages). It is slower than the rest of the suite because it performs a full production build.
+`tests/build.test.ts` is a full-site build verification suite: its `beforeAll` shells out to `npm run build` (real `astro build`, up to 180s) and then asserts on the contents of `dist/` — GEO artifacts (`robots.txt`, `llms.txt`/`llms-full.txt` including a content-depth check that the latter inlines real case-study body prose rather than just frontmatter, `sitemap-index.xml`), full page coverage (every core page, both `/work/` index pages, and all 5 case studies in each of `zh`/`en`), Article/FAQPage/Person structured data on every case study page, and hreflang cross-linking between locale counterparts. It is slower than the rest of the suite because it performs a full production build.
 
 ## Before Going Live
 
