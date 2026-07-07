@@ -51,6 +51,45 @@ Once you've registered a domain (see the main README's "Before Going Live" secti
 ./scripts/deploy-aws.sh
 ```
 
+## Required IAM permissions
+
+Beyond standard S3 bucket management, the IAM principal running `terraform apply` and `scripts/deploy-aws.sh` needs these CloudFront actions (CloudFront has no per-resource ARN scoping for most of them, hence `Resource: "*"`):
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CloudFrontStaticSiteManagement",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:CreateOriginAccessControl", "cloudfront:GetOriginAccessControl",
+        "cloudfront:UpdateOriginAccessControl", "cloudfront:DeleteOriginAccessControl",
+        "cloudfront:ListOriginAccessControls",
+        "cloudfront:CreateFunction", "cloudfront:GetFunction", "cloudfront:DescribeFunction",
+        "cloudfront:UpdateFunction", "cloudfront:PublishFunction", "cloudfront:DeleteFunction",
+        "cloudfront:ListFunctions",
+        "cloudfront:CreateDistribution", "cloudfront:GetDistribution", "cloudfront:UpdateDistribution",
+        "cloudfront:DeleteDistribution", "cloudfront:ListDistributions",
+        "cloudfront:TagResource", "cloudfront:UntagResource", "cloudfront:ListTagsForResource",
+        "cloudfront:CreateInvalidation", "cloudfront:GetInvalidation", "cloudfront:ListInvalidations"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "S3BucketPolicyForCloudFrontOAC",
+      "Effect": "Allow",
+      "Action": ["s3:PutBucketPolicy", "s3:GetBucketPolicy", "s3:DeleteBucketPolicy"],
+      "Resource": "arn:aws:s3:::<your-bucket-name>"
+    }
+  ]
+}
+```
+
+`cloudfront:CreateInvalidation` is only exercised by `scripts/deploy-aws.sh` (on the *second* and later deploys — the first deploy has nothing cached yet, so a missing invalidation permission doesn't block getting the site live). If you're running this from a role that's near IAM's per-role quotas (10 managed policies, 10240 bytes of combined inline policy), a separate small inline policy scoped to just the three invalidation actions is more likely to fit than extending an existing large policy.
+
+If your credentials come from an EC2 instance profile, a newly-attached policy may take a few minutes to take effect on that instance's cached temporary credentials — retry after a short wait rather than assuming the policy didn't apply.
+
 ## Notes
 
 - `force_destroy = true` on the bucket means `terraform destroy` won't get stuck on non-empty-bucket errors — the bucket holds only rebuildable static output, nothing worth protecting from deletion.
