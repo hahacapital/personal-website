@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { buildPersonJsonLd, buildArticleJsonLd, buildFaqJsonLd, buildHreflangLinks } from '../src/lib/geo';
+import {
+  buildPersonJsonLd,
+  buildArticleJsonLd,
+  buildFaqJsonLd,
+  buildBreadcrumbListJsonLd,
+  buildItemListJsonLd,
+  buildHreflangLinks,
+} from '../src/lib/geo';
 
 describe('buildPersonJsonLd', () => {
   it('produces a schema.org Person with sameAs', () => {
@@ -44,6 +51,53 @@ describe('buildFaqJsonLd', () => {
 
   it('returns null for an empty list', () => {
     expect(buildFaqJsonLd([])).toBeNull();
+  });
+});
+
+describe('buildBreadcrumbListJsonLd', () => {
+  it('produces a schema.org BreadcrumbList with 1-indexed positions', () => {
+    const result = buildBreadcrumbListJsonLd([
+      { name: 'Home', url: 'https://yixiangzhang.com/en/' },
+      { name: 'Work', url: 'https://yixiangzhang.com/en/work/' },
+      { name: 'AI Agent Factory', url: 'https://yixiangzhang.com/en/work/agent-factory/' },
+    ]) as any;
+    expect(result['@context']).toBe('https://schema.org');
+    expect(result['@type']).toBe('BreadcrumbList');
+    expect(result.itemListElement).toHaveLength(3);
+    expect(result.itemListElement[0]).toEqual({
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: 'https://yixiangzhang.com/en/',
+    });
+    expect(result.itemListElement[2]).toEqual({
+      '@type': 'ListItem',
+      position: 3,
+      name: 'AI Agent Factory',
+      item: 'https://yixiangzhang.com/en/work/agent-factory/',
+    });
+  });
+});
+
+describe('buildItemListJsonLd', () => {
+  it('produces a schema.org ItemList combining each metric name and value', () => {
+    const result = buildItemListJsonLd('AI Agent Factory — key results', [
+      { name: 'Payment rails', value: 'Alipay / WeChat Pay / USDT' },
+      { name: 'Product status', value: 'Live, revenue-generating' },
+    ]) as any;
+    expect(result['@context']).toBe('https://schema.org');
+    expect(result['@type']).toBe('ItemList');
+    expect(result.name).toBe('AI Agent Factory — key results');
+    expect(result.itemListElement).toHaveLength(2);
+    expect(result.itemListElement[0]).toEqual({
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Payment rails: Alipay / WeChat Pay / USDT',
+    });
+  });
+
+  it('returns null for an empty list', () => {
+    expect(buildItemListJsonLd('Empty', [])).toBeNull();
   });
 });
 

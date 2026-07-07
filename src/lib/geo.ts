@@ -61,6 +61,60 @@ export function buildFaqJsonLd(items: FaqItem[]): Record<string, unknown> | null
   };
 }
 
+export interface BreadcrumbItem {
+  name: string;
+  url: string;
+}
+
+// Sitewide BreadcrumbList (design spec §6, point 3). Every page that isn't
+// the site root builds its own trail (Home > ... > this page) and passes it
+// here; positions are derived from array order (1-indexed) rather than taken
+// as an input, so a call site can never desync `position` from the item's
+// actual place in the trail.
+export function buildBreadcrumbListJsonLd(items: BreadcrumbItem[]): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}
+
+export interface MetricListItem {
+  name: string;
+  value: string;
+}
+
+// The `ItemList` third of the "Article + ItemList + FAQPage" triple stack
+// (design spec §6, point 3: ~1.8x more AI-answer citations than Article
+// alone, per the research cited there). Each case study's `metrics` array
+// (already rendered as the visible results plate) becomes one `ListItem` per
+// metric, `name` set to "{label}: {value}" so the list is self-describing
+// even out of context (e.g. quoted directly by an AI answer engine). Returns
+// null for an empty list, matching `buildFaqJsonLd`'s null-on-empty pattern —
+// a case study with no metrics simply omits the block via the same
+// `.filter(Boolean)` call sites already use.
+export function buildItemListJsonLd(
+  name: string,
+  items: MetricListItem[]
+): Record<string, unknown> | null {
+  if (items.length === 0) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name,
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: `${item.name}: ${item.value}`,
+    })),
+  };
+}
+
 export interface HreflangLink {
   hreflang: string;
   href: string;

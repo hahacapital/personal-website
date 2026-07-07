@@ -6,14 +6,28 @@
 // 页头样式不同。
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import CaseIndex from '../../../components/CaseIndex.astro';
+import { buildBreadcrumbListJsonLd } from '../../../lib/geo';
+import { siteConfig } from '../../../data/site';
+import { useTranslations } from '../../../i18n/utils';
 
 const lang = 'zh' as const;
+const t = useTranslations(lang);
 
 const title = '精选案例 · 张翼翔 — 企业 AI Agent 落地案例';
 const description =
   '张翼翔的案例:企业级 AI Agent 工厂、真实收费的 AI 投研产品、机构级质押基础设施等——每一个都是真实上线、有具体成果的系统,而非概念演示。';
+
+// Sitewide BreadcrumbList (final-review Finding 1 — the design spec called
+// for this, but it was dropped when the spec was translated into concrete
+// implementation tasks). 首页 > 案例; see src/lib/geo.ts.
+const jsonLd = [
+  buildBreadcrumbListJsonLd([
+    { name: t('nav.home'), url: `${siteConfig.siteUrl}/${lang}/` },
+    { name: t('nav.work'), url: `${siteConfig.siteUrl}/${lang}/work/` },
+  ]),
+];
 ---
 
-<BaseLayout lang={lang} title={title} description={description} path="work">
+<BaseLayout lang={lang} title={title} description={description} path="work" jsonLd={jsonLd}>
   <CaseIndex lang={lang} variant="page" />
 </BaseLayout>

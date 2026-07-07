@@ -19,14 +19,31 @@
 //   4. FAQ — the existing Faq.astro component (reused, not reimplemented) under a
 //      heading, only when there are questions.
 //
-// SEO: BaseLayout's <Seo> takes the jsonLd array; here that's the Article block
-// (datePublished/dateModified both derive from updatedDate — v1 tracks no
-// separate publish date) plus, when present, the FAQPage block. .filter(Boolean)
-// drops the FAQ block when there are no faqs (buildFaqJsonLd returns null).
+// SEO: BaseLayout's <Seo> takes the jsonLd array; here that's the full
+// "triple stack" the design spec's cited research calls out (Article +
+// ItemList + FAQPage earns ~1.8x more AI-answer citations than Article alone)
+// plus a BreadcrumbList — both of these were specified in the design spec but
+// dropped when it was narrowed into concrete implementation tasks, and are
+// added back here per the final whole-branch review:
+//   - Article: datePublished/dateModified both derive from updatedDate (v1
+//     tracks no separate publish date).
+//   - ItemList: the same `metrics` array the results plate already renders,
+//     re-expressed as one ListItem per metric — no new content, just a
+//     second structured-data view of data the page already has.
+//   - FAQPage: present only when there are faqs.
+//   - BreadcrumbList: Home > Work > this case study's title.
+// .filter(Boolean) drops the ItemList/FAQPage blocks when metrics/faqs are
+// empty (buildItemListJsonLd/buildFaqJsonLd both return null in that case).
 import BaseLayout from './BaseLayout.astro';
 import Faq from '../components/Faq.astro';
-import { buildArticleJsonLd, buildFaqJsonLd } from '../lib/geo';
+import {
+  buildArticleJsonLd,
+  buildFaqJsonLd,
+  buildBreadcrumbListJsonLd,
+  buildItemListJsonLd,
+} from '../lib/geo';
 import { siteConfig } from '../data/site';
+import { useTranslations } from '../i18n/utils';
 
 interface Metric {
   label: string;
@@ -48,11 +65,16 @@ interface Props {
 }
 
 const { lang, title, summary, path, metrics, faqs, updatedDate } = Astro.props;
+const t = useTranslations(lang);
 
 // Article canonical URL matches the one <Seo> derives from `path`
 // (buildHreflangLinks prepends /{lang}/ and appends the trailing slash).
 const articleUrl = `${siteConfig.siteUrl}/${lang}/${path}/`;
 const isoDate = updatedDate.toISOString();
+
+// "{title} — key results" / "{title} — 核心成果": a short, self-describing
+// name for the ItemList block, in the page's own language.
+const itemListName = lang === 'zh' ? `${title} — 核心成果` : `${title} — key results`;
 
 const jsonLd = [
   buildArticleJsonLd({
@@ -63,7 +85,16 @@ const jsonLd = [
     dateModified: isoDate,
     inLanguage: lang,
   }),
+  buildItemListJsonLd(
+    itemListName,
+    metrics.map((metric) => ({ name: metric.label, value: metric.value }))
+  ),
   buildFaqJsonLd(faqs),
+  buildBreadcrumbListJsonLd([
+    { name: t('nav.home'), url: `${siteConfig.siteUrl}/${lang}/` },
+    { name: t('nav.work'), url: `${siteConfig.siteUrl}/${lang}/work/` },
+    { name: title, url: articleUrl },
+  ]),
 ].filter((block): block is Record<string, unknown> => block !== null);
 
 // Human-readable "updated" date — the instrument voice on genuine metadata.

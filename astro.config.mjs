@@ -28,6 +28,16 @@ export default defineConfig({
         defaultLocale: 'zh',
         locales: { zh: 'zh-CN', en: 'en-US' },
       },
+      // Exclude the root `/` redirect page (src/pages/index.astro — a
+      // client-side Accept-Language redirect with no unique content of its
+      // own, see i18n strategy in the design spec §8). Without this,
+      // @astrojs/sitemap's i18n grouping (see its parseI18nUrl helper) treats
+      // `/` as an implicit zh-CN alternate on top of the real `/zh/`, since
+      // both resolve to the same { locale: 'zh', path: '/' } grouping key —
+      // emitting hreflang="zh-CN" twice on every URL in that group. Dropping
+      // `/` from the sitemap entirely removes the collision and also matches
+      // Google's own sitemap guidance to avoid listing redirecting URLs.
+      filter: (page) => new URL(page).pathname !== '/',
     }),
   ]
 });

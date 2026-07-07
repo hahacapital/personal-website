@@ -6,14 +6,28 @@
 // real title/description for this route.
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AboutBody from '../../components/AboutBody.astro';
+import { buildBreadcrumbListJsonLd } from '../../lib/geo';
+import { siteConfig } from '../../data/site';
+import { useTranslations } from '../../i18n/utils';
 
 const lang = 'en' as const;
+const t = useTranslations(lang);
 
 const title = 'About Yixiang Zhang · Independent Forward Deployed Engineer';
 const description =
   "Yixiang Zhang's career: Technical Expert at Ant Financial's blockchain platform, Technical Director at XinHeYun, now an independent Forward Deployed Engineer. Working philosophy, education, and full career timeline.";
+
+// Sitewide BreadcrumbList (final-review Finding 1 — the design spec called
+// for this, but it was dropped when the spec was translated into concrete
+// implementation tasks). Home > About; see src/lib/geo.ts.
+const jsonLd = [
+  buildBreadcrumbListJsonLd([
+    { name: t('nav.home'), url: `${siteConfig.siteUrl}/${lang}/` },
+    { name: t('nav.about'), url: `${siteConfig.siteUrl}/${lang}/about/` },
+  ]),
+];
 ---
 
-<BaseLayout lang={lang} title={title} description={description} path="about">
+<BaseLayout lang={lang} title={title} description={description} path="about" jsonLd={jsonLd}>
   <AboutBody lang={lang} />
 </BaseLayout>

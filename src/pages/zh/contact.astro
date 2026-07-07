@@ -6,14 +6,28 @@
 // for this route.
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ContactBody from '../../components/ContactBody.astro';
+import { buildBreadcrumbListJsonLd } from '../../lib/geo';
+import { siteConfig } from '../../data/site';
+import { useTranslations } from '../../i18n/utils';
 
 const lang = 'zh' as const;
+const t = useTranslations(lang);
 
 const title = '联系张翼翔 · 独立 Forward Deployed Engineer';
 const description =
   '联系张翼翔，洽谈 AI Agent 项目落地合作：邮箱与微信联系方式，以及可下载的中文简历（PDF）。';
+
+// Sitewide BreadcrumbList (final-review Finding 1 — the design spec called
+// for this, but it was dropped when the spec was translated into concrete
+// implementation tasks). 首页 > 联系; see src/lib/geo.ts.
+const jsonLd = [
+  buildBreadcrumbListJsonLd([
+    { name: t('nav.home'), url: `${siteConfig.siteUrl}/${lang}/` },
+    { name: t('nav.contact'), url: `${siteConfig.siteUrl}/${lang}/contact/` },
+  ]),
+];
 ---
 
-<BaseLayout lang={lang} title={title} description={description} path="contact">
+<BaseLayout lang={lang} title={title} description={description} path="contact" jsonLd={jsonLd}>
   <ContactBody lang={lang} />
 </BaseLayout>
