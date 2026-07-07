@@ -1,0 +1,11 @@
+# Copy to terraform.tfvars (gitignored) and fill in.
+
+aws_region  = "ap-northeast-1" # Tokyo
+bucket_name = "yixiangzhang-personal-site" # must be globally unique across all of S3
+
+# Leave the rest unset for the first apply — that gets you a live site on
+# the default https://<id>.cloudfront.net domain. Once you've registered a
+# domain, see infra/aws-static-site/README.md for how to add it.
+# domain_name               = "yixiangzhang.com"
+# subject_alternative_names = ["www.yixiangzhang.com"]
+# acm_validation_fqdns      = []
