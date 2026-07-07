@@ -12,6 +12,7 @@ const CASE_SLUGS = [
   'staking-infrastructure',
   'ff-service',
   'investment-research',
+  'tiktok-roi',
 ];
 
 beforeAll(() => {
