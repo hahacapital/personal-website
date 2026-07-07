@@ -1,0 +1,118 @@
+---
+// src/components/Faq.astro
+// Visible, zero-JS Q&A. Takes the FAQ items directly (not a lang prop) so it can
+// be reused anywhere. Each item is a native <details open>: the answer is
+// visible by default (never hidden-until-JS — the copy is always in the served
+// HTML, so AI crawlers and no-JS readers get the full text) and the disclosure
+// is a progressive nicety on top, not a gate. <summary> carries the question so
+// the control is keyboard-operable and announced correctly; the whole thing is
+// a plain <details> list rather than a <dl> because dt/dd may not live inside
+// details/summary (invalid content model) and the machine-readable structure is
+// carried separately: the FAQ *JSON-LD* is emitted at the PAGE level via
+// buildFaqJsonLd from the same source (home-content.ts), so the two never drift.
+import type { FaqItem } from '../data/home-content';
+
+interface Props {
+  items: FaqItem[];
+}
+
+const { items } = Astro.props;
+---
+
+{items.length > 0 && (
+  <div class="faq">
+    {items.map((item) => (
+      <details class="faq__item" open>
+        <summary class="faq__q">
+          <span class="faq__q-text">{item.question}</span>
+          <span class="faq__icon" aria-hidden="true"></span>
+        </summary>
+        <p class="faq__a">{item.answer}</p>
+      </details>
+    ))}
+  </div>
+)}
+
+<style>
+  .faq {
+    margin: 0;
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--color-hairline);
+  }
+
+  /* Each <details> is one Q&A row, divided by hairlines (no box per item). */
+  .faq__item {
+    border-bottom: 1px solid var(--color-hairline);
+  }
+
+  /* The question is a real <summary> so the disclosure is keyboard-operable and
+     announced correctly; the answer <p> follows it inside the same <details>. */
+  .faq__q {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding-block: var(--space-lg);
+    cursor: pointer;
+    list-style: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .faq__q::-webkit-details-marker { display: none; }
+  .faq__q::marker { content: ''; }
+  .faq__q:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+    border-radius: var(--radius-sm);
+  }
+
+  .faq__q-text {
+    margin: 0;
+    font-size: var(--text-title, 1.25rem);
+    font-weight: 600;
+    line-height: 1.28;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+    text-wrap: balance;
+  }
+  :global(:lang(zh)) .faq__q-text { letter-spacing: 0; line-height: 1.4; }
+
+  /* Plus/minus disclosure marker — a shape cue, not color alone. */
+  .faq__icon {
+    position: relative;
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    margin-top: 0.35rem;
+    color: var(--color-muted);
+    transition: color var(--dur-fast) var(--ease-out-quart);
+  }
+  .faq__icon::before,
+  .faq__icon::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1rem;
+    height: 1.5px;
+    background: currentColor;
+    border-radius: var(--radius-xs);
+    transform: translate(-50%, -50%);
+    transition: transform var(--dur) var(--ease-out-quart), opacity var(--dur) var(--ease-out-quart);
+  }
+  .faq__icon::after { transform: translate(-50%, -50%) rotate(90deg); }
+  /* Open → collapse to a minus; hover nudges the icon to coral. */
+  [open] > .faq__q .faq__icon::after { opacity: 0; }
+  .faq__q:hover .faq__icon { color: var(--color-primary); }
+  .faq__q:hover .faq__q-text { color: var(--color-primary); }
+
+  .faq__a {
+    margin: 0;
+    padding-bottom: var(--space-lg);
+    max-width: var(--measure);
+    color: var(--color-muted);
+    font-size: var(--text-body);
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+</style>

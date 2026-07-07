@@ -1,0 +1,221 @@
+---
+// src/components/AboutBody.astro
+// The whole About page body, both locales. Not reused elsewhere (aboutContent
+// is scoped to this page), so it lives as one file rather than being split
+// into N single-use components — the same reasoning CaseStudyLayout uses for
+// bundling multiple sections in one file. Composition, top to bottom:
+//   1. Intro — the page's one h1, a quiet role byline (siteConfig.tagline,
+//      already used for the Person JSON-LD jobTitle elsewhere), a plain-
+//      language gloss of "Forward Deployed Engineer" (this page's narrative
+//      uses the term and other jargon — BaaS, AKDF, SLA — repeatedly; Hero.astro
+//      already established that a first-touch reader gets this framing before
+//      the jargon, so About gets its own third-person-voice equivalent here),
+//      then the 3-paragraph career narrative set in a prose treatment that
+//      mirrors CaseStudyLayout's `.prose` recipe (measure, line-height,
+//      paragraph rhythm) without pulling in prose's Markdown-only rules
+//      (lists/code/blockquote) this page never needs.
+//   2. Timeline (Task 10, reused as-is) — sits between the narrative and the
+//      philosophy/education sections so two prose-heavy reads don't run back
+//      to back; it's the visual ledger for the same career facts.
+//   3. Philosophy — its own section (h2 + a lead-scale statement) rather than
+//      a bordered "callout" card: impeccable's side-stripe-border ban rules
+//      out a colored left rule here, so distinction comes from type scale +
+//      a section heading + the standard hairline/padding rhythm, matching
+//      every other section boundary on this site (IdentityPillars, Timeline,
+//      ContactBlock).
+//   4. Education — closing section, a ticked list (the same coral-tick marker
+//      IdentityPillars uses for proof points), each entry rendered verbatim
+//      as one string (the data isn't split into institution/degree/date
+//      fields, so no parsing is invented).
+import type { Locale } from '../i18n/utils';
+import { aboutContent } from '../data/about-content';
+import { siteConfig } from '../data/site';
+import Timeline from './Timeline.astro';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const { narrative, philosophy, education } = aboutContent[lang];
+
+const heading = { zh: '关于张翼翔', en: 'About Yixiang Zhang' }[lang];
+const philosophyHeading = { zh: '工作理念', en: 'Working philosophy' }[lang];
+const educationHeading = { zh: '教育背景', en: 'Education' }[lang];
+
+// A plain-language gloss for readers who land on About directly (e.g. via
+// search) and may not know the Palantir-origin term — mirrors Hero.astro's
+// .hero__gloss in purpose, written in this page's third-person narrative
+// voice rather than Hero's direct-address voice.
+const gloss = {
+  zh: '「Forward Deployed Engineer」指直接加入客户团队、在现场把 AI 需求转化为可上线系统的工程角色，而非仅在后方输出方案。',
+  en: 'A Forward Deployed Engineer embeds directly with a client\'s team, turning AI requirements into shippable systems on-site — rather than advising from the sidelines.',
+}[lang];
+---
+
+<section class="about-intro" aria-labelledby="about-heading">
+  <div class="container">
+    <h1 class="about-intro__title" id="about-heading">{heading}</h1>
+    <p class="about-intro__tagline">{siteConfig.tagline[lang]}</p>
+    <p class="about-intro__gloss">{gloss}</p>
+
+    <div class="about-narrative">
+      {narrative.map((paragraph) => (
+        <p>{paragraph}</p>
+      ))}
+    </div>
+  </div>
+</section>
+
+<Timeline lang={lang} />
+
+<section class="about-philosophy" aria-labelledby="philosophy-heading">
+  <div class="container">
+    <h2 class="about-philosophy__heading" id="philosophy-heading">{philosophyHeading}</h2>
+    <p class="about-philosophy__text">{philosophy}</p>
+  </div>
+</section>
+
+<section class="about-education" aria-labelledby="education-heading">
+  <div class="container">
+    <h2 class="about-education__heading" id="education-heading">{educationHeading}</h2>
+    <ul class="about-education__list">
+      {education.map((item) => (
+        <li class="about-education__item">
+          <span class="about-education__tick" aria-hidden="true"></span>
+          <span class="about-education__text">{item}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  /* ---- Intro --------------------------------------------------------------
+     Title + role byline (matches CaseStudyLayout .cs-head's rhythm: bigger
+     top pad below the sticky header, smaller bottom pad since the narrative
+     follows immediately with no divider). */
+  .about-intro {
+    padding-block: clamp(2.5rem, 1.75rem + 4vw, 4.5rem) var(--space-xl);
+  }
+
+  .about-intro__title {
+    max-width: 20ch;
+    font-size: var(--text-h1);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    color: var(--color-ink);
+  }
+  :global(:lang(zh)) .about-intro__title {
+    max-width: 24ch;
+    letter-spacing: 0;
+    line-height: 1.25;
+  }
+
+  .about-intro__tagline {
+    margin-top: var(--space-sm);
+    font-size: var(--text-lead);
+    line-height: 1.5;
+    color: var(--color-muted);
+  }
+  :global(:lang(zh)) .about-intro__tagline { line-height: 1.65; }
+
+  /* Plain-language gloss for "Forward Deployed Engineer" — quiet, muted,
+     same measure/scale as the tagline above it (not a second heading). */
+  .about-intro__gloss {
+    margin-top: var(--space-sm);
+    max-width: 52ch;
+    font-size: var(--text-body);
+    line-height: 1.55;
+    color: var(--color-muted);
+    text-wrap: pretty;
+  }
+  :global(:lang(zh)) .about-intro__gloss { line-height: 1.7; }
+
+  /* Narrative: a prose read capped at the body measure. Same recipe as
+     CaseStudyLayout's `.prose` (measure/line-height/paragraph rhythm) minus
+     the Markdown-only rules (headings/lists/code/blockquote) this section
+     never renders. */
+  .about-narrative {
+    margin-top: var(--space-xl);
+    max-width: var(--measure);
+    font-size: var(--text-body);
+    line-height: 1.6;
+    color: var(--color-ink);
+    overflow-wrap: anywhere;
+  }
+  :global(:lang(zh)) .about-narrative { line-height: 1.75; }
+  .about-narrative > * + * { margin-top: var(--space-md); }
+  .about-narrative p { text-wrap: pretty; }
+
+  /* ---- Philosophy ----------------------------------------------------------
+     A distinct section (heading + lead statement), not a bordered callout —
+     the colored side-rule treatment is reserved for genuine quoted/markdown
+     blockquotes elsewhere; here type scale + the standard section rhythm
+     (hairline top, generous padding-block) does the separating work. */
+  .about-philosophy {
+    padding-block: var(--space-2xl);
+    border-top: 1px solid var(--color-hairline);
+  }
+
+  .about-philosophy__heading {
+    margin-bottom: var(--space-md);
+    font-size: var(--text-h2);
+  }
+
+  .about-philosophy__text {
+    max-width: var(--measure);
+    font-size: var(--text-lead);
+    line-height: 1.5;
+    color: var(--color-ink);
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+  }
+  :global(:lang(zh)) .about-philosophy__text { line-height: 1.65; }
+
+  /* ---- Education -------------------------------------------------------- */
+  .about-education {
+    padding-block: var(--space-2xl);
+    border-top: 1px solid var(--color-hairline);
+  }
+
+  .about-education__heading {
+    margin-bottom: var(--space-md);
+    font-size: var(--text-h2);
+  }
+
+  .about-education__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-sm);
+    max-width: var(--measure);
+  }
+
+  /* Ticked list — the same hanging coral-tick marker IdentityPillars uses for
+     proof points, extended to a second list of the same visual shape. */
+  .about-education__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 0.75rem;
+    font-size: var(--text-body);
+    line-height: 1.55;
+    color: var(--color-ink);
+    overflow-wrap: anywhere;
+  }
+  :global(:lang(zh)) .about-education__item { line-height: 1.7; }
+
+  .about-education__tick {
+    margin-top: 0.62em;
+    width: 0.875rem;
+    height: 2px;
+    border-radius: var(--radius-xs);
+    background: var(--color-primary);
+    flex: none;
+  }
+  .about-education__text { text-wrap: pretty; }
+</style>

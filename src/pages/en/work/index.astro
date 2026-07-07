@@ -1,0 +1,34 @@
+---
+// src/pages/en/work/index.astro
+// The English /work/ index — the real destination for the "Work" nav item and
+// the hero's "View work" CTA (both previously pointed at this path with no page
+// behind it). Reuses the existing CaseIndex component in its `page` variant so
+// the case list has a single source of truth shared with the Home page; only
+// the heading level (h1 here vs h2 on Home) and the page-header chrome differ.
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import CaseIndex from '../../../components/CaseIndex.astro';
+import { buildBreadcrumbListJsonLd } from '../../../lib/geo';
+import { siteConfig } from '../../../data/site';
+import { useTranslations } from '../../../i18n/utils';
+
+const lang = 'en' as const;
+const t = useTranslations(lang);
+
+const title = 'Selected work · Yixiang Zhang — Enterprise AI Agent case studies';
+const description =
+  'Case studies from Yixiang Zhang, independent Forward Deployed Engineer: enterprise AI Agent factories, a live paying AI investment-research product, institutional staking infrastructure, and more — real shipped systems with specific outcomes.';
+
+// Sitewide BreadcrumbList (final-review Finding 1 — the design spec called
+// for this, but it was dropped when the spec was translated into concrete
+// implementation tasks). Home > Work; see src/lib/geo.ts.
+const jsonLd = [
+  buildBreadcrumbListJsonLd([
+    { name: t('nav.home'), url: `${siteConfig.siteUrl}/${lang}/` },
+    { name: t('nav.work'), url: `${siteConfig.siteUrl}/${lang}/work/` },
+  ]),
+];
+---
+
+<BaseLayout lang={lang} title={title} description={description} path="work" jsonLd={jsonLd}>
+  <CaseIndex lang={lang} variant="page" />
+</BaseLayout>

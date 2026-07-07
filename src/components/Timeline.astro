@@ -1,0 +1,135 @@
+---
+// src/components/Timeline.astro
+// A condensed career ledger. A genuine chronological sequence, so the ordering
+// carries information — the mono period column (tabular figures, aligned) is
+// the instrument voice doing real work, not decoration. A single hairline spine
+// with tick markers gives the timeline its shape without a heavy graphic.
+import type { Locale } from '../i18n/utils';
+import { homeContent } from '../data/home-content';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const { timeline } = homeContent[lang];
+
+const heading = { zh: '履历', en: 'Trajectory' }[lang];
+---
+
+<section class="timeline" aria-labelledby="timeline-heading">
+  <div class="container">
+    <h2 class="timeline__heading" id="timeline-heading">{heading}</h2>
+
+    <ol class="timeline__list">
+      {timeline.map((entry) => (
+        <li class="tl-entry">
+          <span class="tl-entry__period">{entry.period}</span>
+          <span class="tl-entry__spine" aria-hidden="true">
+            <span class="tl-entry__tick"></span>
+          </span>
+          <span class="tl-entry__body">
+            <span class="tl-entry__org">{entry.org}</span>
+            <span class="tl-entry__role">{entry.role}</span>
+          </span>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .timeline {
+    padding-block: var(--space-2xl);
+    border-top: 1px solid var(--color-hairline);
+  }
+
+  .timeline__heading {
+    margin-bottom: var(--space-xl);
+    font-size: var(--text-h2);
+  }
+
+  .timeline__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* period · spine · body. The spine column holds a continuous 1px rule with a
+     dot per entry; the body carries org (ink) + role (muted). */
+  .tl-entry {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    column-gap: var(--space-md);
+    align-items: start;
+  }
+
+  .tl-entry__period {
+    padding-top: 0.05rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    color: var(--color-muted);
+    white-space: nowrap;
+  }
+
+  /* The spine: a vertical hairline running through the marker column. */
+  .tl-entry__spine {
+    position: relative;
+    display: block;
+    width: 1px;
+    background: var(--color-hairline);
+    justify-self: center;
+  }
+  /* Trim the spine at the very top and bottom of the list for clean endcaps. */
+  .tl-entry:first-child .tl-entry__spine { margin-top: 0.5rem; }
+  .tl-entry:last-child .tl-entry__spine {
+    align-self: start;
+    height: 0.55rem;
+  }
+
+  .tl-entry__tick {
+    position: absolute;
+    top: 0.4rem;
+    left: 50%;
+    width: 0.5rem;
+    height: 0.5rem;
+    transform: translate(-50%, 0);
+    border-radius: var(--radius-pill);
+    background: var(--color-bg);
+    border: 2px solid var(--color-primary);
+    box-sizing: border-box;
+  }
+  /* The current (first) role gets a filled marker: it's the live one. */
+  .tl-entry:first-child .tl-entry__tick { background: var(--color-primary); }
+
+  .tl-entry__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding-bottom: var(--space-xl);
+  }
+  .tl-entry:last-child .tl-entry__body { padding-bottom: 0; }
+
+  .tl-entry__org {
+    font-size: var(--text-title, 1.25rem);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+    text-wrap: balance;
+  }
+  :global(:lang(zh)) .tl-entry__org { letter-spacing: 0; }
+  .tl-entry__role {
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+
+  @media (min-width: 34rem) {
+    .tl-entry { column-gap: var(--space-lg); }
+    .tl-entry__period { font-size: var(--text-sm); }
+    .tl-entry__org { font-size: 1.375rem; }
+  }
+</style>

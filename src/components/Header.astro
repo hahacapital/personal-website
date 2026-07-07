@@ -1,0 +1,304 @@
+---
+// src/components/Header.astro
+// Thin, sticky, hairline-ruled masthead. Wordmark (with the single coral
+// "machined dial" mark) sits left; primary nav + the language switcher sit
+// right. On desktop the nav is a normal inline row (always painted). On
+// narrow viewports it collapses behind a zero-JS <details> toggle: the nav
+// lives OUTSIDE <details> and is revealed via :has() on the open state, so
+// nothing depends on the closed-<details> paint behavior.
+import type { Locale } from '../i18n/utils';
+import { useTranslations, getLocalizedPath } from '../i18n/utils';
+import { siteConfig } from '../data/site';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+
+interface Props {
+  lang: Locale;
+  // Forwarded to LanguageSwitcher — see its own comment. Optional, undefined
+  // by default, so every existing call site is unaffected.
+  altHref?: string;
+}
+
+const { lang, altHref } = Astro.props;
+const t = useTranslations(lang);
+
+const home = getLocalizedPath('/', lang);
+const menuLabel = lang === 'zh' ? '菜单' : 'Menu';
+
+const nav = [
+  { key: 'nav.home', href: home },
+  { key: 'nav.work', href: getLocalizedPath('/work/', lang) },
+  { key: 'nav.about', href: getLocalizedPath('/about/', lang) },
+  { key: 'nav.contact', href: getLocalizedPath('/contact/', lang) },
+] as const;
+
+// Mark the current top-level section active without relying on color alone
+// (an underline rule / leading tick is added too). Normalize path prefixes.
+const homeKey = home.replace(/\/+$/, '');
+const current = Astro.url.pathname.replace(/\/+$/, '') || '/';
+function isActive(href: string): boolean {
+  const target = href.replace(/\/+$/, '') || '/';
+  if (target === homeKey) return current === (homeKey || '/');
+  return current === target || current.startsWith(target + '/');
+}
+---
+
+<header class="masthead">
+  <div class="container masthead__inner">
+    <a class="wordmark" href={home} aria-label={siteConfig.name[lang]}>
+      <span class="wordmark__dot" aria-hidden="true"></span>
+      <span class="wordmark__name">{siteConfig.name[lang]}</span>
+      <span class="wordmark__role">FDE</span>
+    </a>
+
+    <div class="masthead__end">
+      {/* Mobile-only disclosure toggle. Purely presentational on desktop. */}
+      <details class="nav-disclosure">
+        <summary class="nav-toggle" aria-label={menuLabel}>
+          <span class="nav-toggle__bars" aria-hidden="true"></span>
+          <span class="nav-toggle__label">{menuLabel}</span>
+        </summary>
+      </details>
+
+      {/* The nav lives outside <details> so it always paints on desktop; on
+          mobile it's hidden until the sibling <details> is open (via :has). */}
+      <nav class="primary-nav" aria-label="Primary">
+        <ul class="primary-nav__list">
+          {nav.map((item) => (
+            <li>
+              <a
+                class:list={['primary-nav__link', { 'is-active': isActive(item.href) }]}
+                href={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+              >
+                {t(item.key)}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <LanguageSwitcher lang={lang} altHref={altHref} />
+    </div>
+  </div>
+</header>
+
+<style>
+  .masthead {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    background: color-mix(in oklch, var(--color-bg) 88%, transparent);
+    backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--color-hairline);
+  }
+
+  .masthead__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* Tight on the narrowest phones so the wider English wordmark + the labeled
+       menu toggle + the switcher never push past the gutter; opens up once
+       there's room. */
+    gap: var(--space-md);
+    min-height: var(--nav-h);
+  }
+  @media (min-width: 26rem) {
+    .masthead__inner { gap: var(--space-lg); }
+  }
+
+  /* -- Wordmark ------------------------------------------------------------ */
+  .wordmark {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    text-decoration: none;
+    color: var(--color-ink);
+    white-space: nowrap;
+  }
+  .wordmark__dot {
+    align-self: center;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-primary);
+    /* the one machined dial: the only always-on coral on the page */
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-primary) 16%, transparent);
+    flex: none;
+  }
+  .wordmark__name {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  :global(:lang(zh)) .wordmark__name { letter-spacing: 0.02em; }
+  /* The mono "FDE" tag is supporting metadata, not the wordmark itself. On the
+     narrowest phones the wider English name ("Yixiang Zhang" vs "张翼翔") plus
+     the labeled toggle + switcher would otherwise overrun the gutter, so the
+     tag drops below 26rem and returns as soon as there's room. */
+  .wordmark__role {
+    display: none;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--color-faint);
+    padding-bottom: 0.1em;
+  }
+  @media (min-width: 26rem) {
+    .wordmark__role { display: inline; }
+  }
+
+  .masthead__end {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  /* -- Mobile disclosure toggle ------------------------------------------- */
+  .nav-disclosure { position: relative; display: inline-flex; }
+  .nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    list-style: none;
+    min-height: 2.75rem;      /* 44px comfortable touch target (WCAG 2.5.5) */
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--color-hairline);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-ink);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-toggle::-webkit-details-marker { display: none; }
+  .nav-toggle::marker { content: ''; }
+  .nav-toggle:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  .nav-toggle__bars,
+  .nav-toggle__bars::before,
+  .nav-toggle__bars::after {
+    content: '';
+    display: block;
+    width: 1rem;
+    height: 1.5px;
+    background: currentColor;
+    border-radius: var(--radius-xs);
+  }
+  .nav-toggle__bars { position: relative; }
+  .nav-toggle__bars::before { position: absolute; top: -5px; }
+  .nav-toggle__bars::after { position: absolute; top: 5px; }
+
+  /* On the narrowest phones (≤22rem, e.g. a 320px iPhone SE) the labeled
+     toggle + switcher + wordmark won't all fit on one row, so the visible
+     "Menu" word collapses to just the icon. The accessible name is preserved
+     via aria-label on the summary, so nothing is lost for AT users; the label
+     returns above 22rem where it earns its clarity for first-time visitors. */
+  @media (max-width: 22rem) {
+    .nav-toggle__label { display: none; }
+    .nav-toggle { gap: 0; }
+  }
+
+  /* -- Primary nav (mobile: popover panel, hidden until toggle open) ------- */
+  .primary-nav {
+    position: absolute;
+    right: var(--gutter);
+    top: calc(var(--nav-h) - 0.25rem);
+    min-width: 12rem;
+    padding: 0.5rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-hairline);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 30px -12px color-mix(in oklch, var(--color-ink) 30%, transparent);
+    z-index: var(--z-overlay);
+    /* hidden by default on mobile; revealed when the sibling <details> opens */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition:
+      opacity var(--dur) var(--ease-out-quart),
+      transform var(--dur) var(--ease-out-quart),
+      visibility 0s linear var(--dur);
+  }
+  .masthead:has(.nav-disclosure[open]) .primary-nav {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition-delay: 0s;
+  }
+  .primary-nav__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .primary-nav__link {
+    display: block;
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-muted);
+    transition:
+      color var(--dur-fast) var(--ease-out-quart),
+      background-color var(--dur-fast) var(--ease-out-quart);
+  }
+  .primary-nav__link:hover { color: var(--color-ink); background: var(--color-surface); }
+  .primary-nav__link.is-active {
+    color: var(--color-ink);
+    /* non-color affordance: a leading coral tick */
+    box-shadow: inset 2px 0 0 var(--color-primary);
+  }
+  .primary-nav__link:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -1px;
+  }
+
+  /* -- Desktop: inline nav, no toggle ------------------------------------- */
+  @media (min-width: 48rem) {
+    .nav-disclosure { display: none; }
+    .primary-nav {
+      position: static;
+      min-width: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      background: transparent;
+      /* always visible on desktop, regardless of the (hidden) toggle */
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      transition: none;
+    }
+    .primary-nav__list { flex-direction: row; gap: var(--space-xs); }
+    .primary-nav__link {
+      position: relative;
+      padding: 0.35rem 0.5rem;
+      color: var(--color-muted);
+      box-shadow: none;
+    }
+    .primary-nav__link:hover { background: transparent; color: var(--color-ink); }
+    .primary-nav__link.is-active {
+      color: var(--color-ink);
+      box-shadow: none;
+    }
+    /* active underline rule (non-color affordance beyond the ink shift) */
+    .primary-nav__link.is-active::after {
+      content: '';
+      position: absolute;
+      left: 0.5rem;
+      right: 0.5rem;
+      bottom: -0.35rem;
+      height: 2px;
+      background: var(--color-primary);
+      border-radius: var(--radius-xs);
+    }
+  }
+</style>

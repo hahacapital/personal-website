@@ -1,0 +1,24 @@
+---
+// src/pages/index.astro
+import '../styles/global.css';
+import { siteConfig } from '../data/site';
+---
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{siteConfig.name.zh} / {siteConfig.name.en}</title>
+    <meta name="description" content={`${siteConfig.tagline.zh} — ${siteConfig.tagline.en}`} />
+    <script is:inline>
+      var preferred = (navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en';
+      window.location.replace('/' + preferred + '/');
+    </script>
+  </head>
+  <body>
+    <main>
+      <h1>{siteConfig.name.zh} · {siteConfig.name.en}</h1>
+      <p>{siteConfig.tagline.zh} / {siteConfig.tagline.en}</p>
+      <p><a href="/zh/">中文</a> · <a href="/en/">English</a></p>
+    </main>
+  </body>
+</html>

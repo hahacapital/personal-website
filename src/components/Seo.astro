@@ -1,0 +1,42 @@
+---
+// src/components/Seo.astro
+import { buildPersonJsonLd, buildHreflangLinks } from '../lib/geo';
+import { siteConfig } from '../data/site';
+
+interface Props {
+  lang: 'zh' | 'en';
+  title: string;
+  description: string;
+  path: string;
+  jsonLd?: Record<string, unknown>[];
+  // Optional: restrict which locales this exact path advertises via hreflang
+  // (defaults to both — every page has a symmetric counterpart). Only an
+  // asymmetric page like /en/resume/ (no zh counterpart) needs to pass this.
+  alternateLocales?: ('zh' | 'en')[];
+}
+
+const { lang, title, description, path, jsonLd = [], alternateLocales } = Astro.props;
+
+const hreflangLinks = buildHreflangLinks(path, siteConfig.siteUrl, alternateLocales);
+const canonical = hreflangLinks.find((l) => l.hreflang === lang)!.href;
+
+const personJsonLd = buildPersonJsonLd({
+  name: siteConfig.name[lang],
+  jobTitle: siteConfig.tagline[lang],
+  url: `${siteConfig.siteUrl}/${lang}/`,
+  sameAs: siteConfig.sameAs,
+  email: siteConfig.email,
+});
+
+const allJsonLd = [personJsonLd, ...jsonLd];
+---
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{hreflangLinks.map((l) => <link rel="alternate" hreflang={l.hreflang} href={l.href} />)}
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:type" content="website" />
+{allJsonLd.map((block) => (
+  <script type="application/ld+json" set:html={JSON.stringify(block)} />
+))}

@@ -1,0 +1,236 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Fonts (self-hosted via @fontsource — no runtime dependency on Google's CDN,
+   which is blocked in mainland China where a large share of the audience and
+   the domestic AI crawlers live). All variable, all font-display: swap.
+   - Schibsted Grotesk : Latin display + body (editorial newsroom grotesque)
+   - Spline Sans Mono  : figures, metadata, labels only ("data as evidence")
+   - Noto Sans SC      : CJK body/display, weight-matched for bilingual parity
+--------------------------------------------------------------------------- */
+@import "@fontsource-variable/schibsted-grotesk/index.css";
+@import "@fontsource-variable/spline-sans-mono/index.css";
+@import "@fontsource-variable/noto-sans-sc/index.css";
+
+/* ---------------------------------------------------------------------------
+   Design tokens — "machined editorial"
+   Palette strategy: Restrained. Warmth lives in one machined dial (coral
+   primary) + typography, never the surface. bg stays pure white; this is a
+   deliberate rejection of the cream/sand warm-near-white AI attractor.
+   All colors OKLCH. Contrast verified (see DESIGN.md).
+--------------------------------------------------------------------------- */
+@theme {
+  /* Neutrals + surfaces */
+  --color-bg: oklch(1 0 0);                 /* pure white  #ffffff */
+  --color-surface: oklch(0.97 0.004 40);    /* faint warm panel #f8f4f3 */
+  --color-hairline: oklch(0.9 0.004 45);    /* borders/rules   #e0dddc */
+
+  /* Ink ramp (warm near-black -> tertiary) */
+  --color-ink: oklch(0.235 0.012 45);       /* body/headings 16.7:1  #231c19 */
+  --color-muted: oklch(0.52 0.014 45);      /* secondary text 5.5:1  #706762 */
+  /* faint is the lightest TEXT tier and is used on real labels/keys/meta at
+     ~13px, so it must still clear WCAG AA (4.5:1) on BOTH the white bg and the
+     surface panel — darkened from the old 3.65:1 value to do so (5.1:1 on white,
+     4.65:1 on surface). */
+  --color-faint: oklch(0.54 0.013 45);      /* captions/meta 5.1:1  #756d69 */
+
+  /* Brand */
+  --color-primary: oklch(0.56 0.17 36);         /* coral 5.0:1 on white #c3441f */
+  --color-primary-hover: oklch(0.5 0.165 35);   /* #ad3210 */
+  /* Documented in DESIGN.md's palette table (role: "Secondary marks") as part
+     of the deliberate v1 design system, but no shipped component has needed a
+     second hierarchy color yet — intentionally reserved, not dead: keep this
+     token as the one source of truth for that role rather than letting a
+     future component re-derive a slightly different blue. */
+  --color-accent: oklch(0.4 0.07 250);          /* slate-blue 9.2:1  #284a6c */
+
+  /* Typography */
+  --font-sans: "Schibsted Grotesk Variable", "Noto Sans SC Variable",
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "Spline Sans Mono Variable", ui-monospace, "SFMono-Regular",
+    "Noto Sans SC Variable", "Cascadia Mono", Menlo, Consolas, monospace;
+
+  /* Fluid type scale (clamp; ~1.25 ratio). Body stays fixed. */
+  --text-caption: 0.8125rem;                /* 13px — mono meta/labels */
+  --text-sm: 0.9375rem;                     /* 15px */
+  --text-body: 1.0625rem;                   /* 17px — comfortable measure */
+  --text-lead: clamp(1.1875rem, 1.05rem + 0.7vw, 1.4375rem);
+  --text-title: clamp(1.375rem, 1.2rem + 0.9vw, 1.75rem); /* DESIGN.md typography.title — same step as h3 */
+  --text-h3: clamp(1.375rem, 1.2rem + 0.9vw, 1.75rem);
+  --text-h2: clamp(1.75rem, 1.45rem + 1.5vw, 2.5rem);
+  --text-h1: clamp(2.375rem, 1.85rem + 2.6vw, 3.75rem);
+
+  /* Corner radius — the DESIGN.md `rounded` scale, promoted to tokens so every
+     component shares one source of truth instead of hardcoding per-file. `xs`
+     (2px) is the cap on thin rules/ticks/bars and focus outlines; sm/md/lg are
+     the 4/8/12 step; pill is fully round (switcher, status dots). */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* Spacing (4pt base, fluid section rhythm) */
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: clamp(3rem, 2rem + 5vw, 5rem);
+  --space-3xl: clamp(4rem, 2.5rem + 7vw, 7rem);
+
+  /* Page frame */
+  --measure: 68ch;                          /* body line-length cap */
+  --container: 72rem;                       /* max content width */
+  --gutter: clamp(1.25rem, 0.75rem + 2.5vw, 3rem);
+
+  /* Semantic z-index scale */
+  --z-sticky: 100;
+  --z-overlay: 400;
+
+  /* Motion */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --dur-fast: 140ms;
+  --dur: 220ms;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+  --nav-h: 4rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: 1.6;
+  font-kerning: normal;
+  font-optical-sizing: auto;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv01", "ss01";
+}
+
+/* Heavier CJK strokes read darker than Latin at the same weight; nudge the
+   base weight down slightly when Simplified Chinese is the document language
+   so zh and en have matched optical color (bilingual parity). */
+:lang(zh) body,
+[lang="zh"] body {
+  font-weight: 350;
+  line-height: 1.7;
+  letter-spacing: 0.005em;
+}
+
+h1, h2, h3, h4 {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  color: var(--color-ink);
+}
+:lang(zh) h1, :lang(zh) h2, :lang(zh) h3, :lang(zh) h4 {
+  letter-spacing: 0;          /* CJK doesn't want negative tracking */
+  line-height: 1.25;
+}
+
+p { margin: 0; text-wrap: pretty; }
+
+a {
+  color: inherit;
+  text-decoration-color: var(--color-hairline);
+  text-underline-offset: 0.18em;
+  transition: color var(--dur-fast) var(--ease-out-quart),
+    text-decoration-color var(--dur-fast) var(--ease-out-quart);
+}
+
+/* Tabular figures everywhere numbers appear inline in mono contexts. */
+.font-mono,
+[class*="mono"] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------------
+   Accessibility — visible, consistent focus. Never rely on color alone.
+--------------------------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* Skip link — keyboard users land on it first, hidden until focused. */
+.skip-link {
+  position: absolute;
+  left: var(--gutter);
+  top: -3rem;
+  z-index: var(--z-overlay);
+  padding: 0.5rem 0.875rem;
+  background: var(--color-ink);
+  color: var(--color-bg);
+  font: 500 var(--text-sm) / 1 var(--font-sans);
+  border-radius: var(--radius-sm);
+  transition: top var(--dur) var(--ease-out-quart);
+}
+.skip-link:focus-visible {
+  top: 0.75rem;
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+   Reusable layout primitives
+--------------------------------------------------------------------------- */
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* Mono label: the "instrument faceplate" voice — figures + metadata only. */
+.label-mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   Reduced motion — mandatory alternative, not optional.
+--------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,128 @@
+---
+// src/pages/en/resume.astro
+// English résumé as a clean, semantic HTML page rather than a generated PDF —
+// no font-embedding/print-fidelity pipeline for marginal benefit, and this is
+// directly better for GEO than a PDF text layer (crawlers/AI assistants parse
+// HTML more reliably); any visitor who wants a PDF can print the page. Reuses
+// aboutContent.en's narrative/education data verbatim (the same career
+// history the About page renders) rather than inventing new copy — this page
+// differs from About only in framing (a standalone, printable résumé) and by
+// leaving out the Timeline/philosophy/gloss sections that don't belong on one.
+//
+// Styling mirrors CaseStudyLayout's `.prose` recipe (Task 11): measure,
+// line-height, and paragraph/heading rhythm, since the brief's markup below
+// is one flowing <article> (a single h1 followed by a plain run of
+// paragraphs and one sub-heading) — structurally the same shape as a case
+// study's header + prose body, not About's multi-section page. The byline
+// paragraph is styled via the `h1 + p` sibling selector so the given markup
+// (a plain <p>, no class) stays untouched.
+//
+// This is the site's first (and, by design, only) locale-asymmetric page:
+// zh has no HTML résumé counterpart, it links straight to /resume-zh.pdf
+// from /zh/contact/ instead. `alternateLocales={['en']}` stops Seo.astro
+// from advertising a zh hreflang/x-default alternate that would point at a
+// URL nothing builds; `langAltHref` points the header's "中" language-switch
+// link at the real zh equivalent (the Contact page, where the PDF résumé
+// actually lives) instead of the mechanically-derived, nonexistent
+// /zh/resume/.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { aboutContent } from '../../data/about-content';
+import { siteConfig } from '../../data/site';
+
+const content = aboutContent.en;
+---
+<BaseLayout
+  lang="en"
+  title={`${siteConfig.name.en} — Résumé`}
+  description="Résumé of Yixiang Zhang, independent Forward Deployed Engineer."
+  path="resume"
+  alternateLocales={['en']}
+  langAltHref="/zh/contact/"
+>
+  <article class="resume">
+    <div class="container">
+      <h1>{siteConfig.name.en}</h1>
+      <p>{siteConfig.tagline.en}</p>
+      {content.narrative.map((paragraph) => <p>{paragraph}</p>)}
+      <h2>Education</h2>
+      <ul>
+        {content.education.map((line) => <li>{line}</li>)}
+      </ul>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .resume {
+    padding-block: clamp(2.5rem, 1.75rem + 4vw, 4.5rem) var(--space-2xl);
+  }
+
+  .resume h1 {
+    margin-top: 0;
+    max-width: 20ch;
+    font-size: var(--text-h1);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    color: var(--color-ink);
+  }
+
+  /* Byline (siteConfig.tagline): the same lead-scale treatment Home's Hero
+     and About's byline give this exact string, targeted via the sibling
+     selector so the brief's plain <p> (no class hook) stays unmodified. */
+  .resume h1 + p {
+    margin-top: var(--space-sm);
+    font-size: var(--text-lead);
+    line-height: 1.5;
+    color: var(--color-muted);
+  }
+
+  /* Narrative paragraphs: CaseStudyLayout's `.prose` body recipe — measure
+     cap, body size, comfortable line-height, paragraph rhythm. */
+  .resume p {
+    margin-top: var(--space-md);
+    max-width: var(--measure);
+    font-size: var(--text-body);
+    line-height: 1.6;
+    color: var(--color-ink);
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+  }
+
+  /* A self-contained descending step: this article starts at h2 (h1 is the
+     page title), same as CaseStudyLayout's markdown body. */
+  .resume h2 {
+    margin-top: var(--space-xl);
+    font-size: var(--text-h3);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+    text-wrap: balance;
+  }
+
+  /* List: the same hanging coral `::marker` CaseStudyLayout's prose lists use
+     (not About's custom tick-span, which needs markup this page's brief
+     doesn't provide) — disc markers recolored, tight row gap. */
+  .resume ul {
+    margin-top: var(--space-md);
+    max-width: var(--measure);
+    padding-left: 1.35em;
+    list-style: disc;
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .resume li {
+    padding-left: 0.25em;
+    font-size: var(--text-body);
+    line-height: 1.6;
+    color: var(--color-ink);
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+  }
+  .resume li::marker {
+    color: var(--color-primary);
+    font-variant-numeric: tabular-nums;
+  }
+</style>

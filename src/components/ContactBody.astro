@@ -1,0 +1,261 @@
+---
+// src/components/ContactBody.astro
+// The whole Contact page body, both locales — mirrors AboutBody's precedent
+// (contact-content.ts is scoped to this page only, per its own header comment,
+// so one shared component keeps the two locale pages thin and avoids
+// duplicating CSS between them; CaseStudyLayout set the same "bundle it in one
+// file" precedent for single-use composition).
+//
+// Composition, top to bottom:
+//   1. Intro — the page's one h1 + the exact bilingual intro line from
+//      contact-content.ts, then the direct-contact ledger: email (mailto) and
+//      WeChat (plain identifier), reusing the same mono "Contact ledger"
+//      recipe DESIGN.md documents from Footer.astro/ContactBlock.astro
+//      (labels pair with values so meaning never depends on position) — this
+//      page IS the site's "act now" moment, so the same surface-tinted panel
+//      ContactBlock uses for its closing CTA is reused verbatim here.
+//   2. Résumé — its own section, deliberately NOT a third ledger row: "下载
+//      简历"/"View résumé" is an action phrase, not a machine-readable value,
+//      so mono would misapply DESIGN.md's "mono only for genuine identifiers"
+//      rule. Styled as a secondary, hairline-bordered button (the same visual
+//      tier Header's mobile nav-toggle already uses) so it doesn't compete
+//      with the site's one coral "discuss a project" CTA used elsewhere.
+//      zh points at the real PDF (download attribute + a mono "PDF" format
+//      tag — genuine metadata); en points at /en/resume/, a same-site page,
+//      with copy that says "View" rather than "Download" since no file is
+//      fetched (the brief's own scope note: English gets a printable HTML
+//      page, not a generated PDF).
+import type { Locale } from '../i18n/utils';
+import { useTranslations } from '../i18n/utils';
+import { siteConfig } from '../data/site';
+import { contactContent } from '../data/contact-content';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const { intro } = contactContent[lang];
+
+const copy = {
+  zh: {
+    heading: '联系张翼翔',
+    emailLabel: '邮箱',
+    wechatLabel: '微信',
+    resumeHeading: '简历',
+    resumeBody: '完整的工作经历、技术专利与教育背景，整理为可下载的 PDF 简历。',
+    resumeLinkText: t('cta.download_resume'),
+  },
+  en: {
+    heading: 'Contact Yixiang Zhang',
+    emailLabel: 'Email',
+    wechatLabel: 'WeChat',
+    resumeHeading: 'Résumé',
+    resumeBody:
+      'The same career history and education covered on the About page, formatted as a standalone résumé you can read or print.',
+    resumeLinkText: 'View résumé',
+  },
+}[lang];
+
+const isZh = lang === 'zh';
+const resumeHref = isZh ? '/resume-zh.pdf' : '/en/resume/';
+---
+
+<section class="contact-intro" aria-labelledby="contact-heading">
+  <div class="container">
+    <h1 class="contact-intro__title" id="contact-heading">{copy.heading}</h1>
+    <p class="contact-intro__lead">{intro}</p>
+
+    <div class="contact-intro__panel">
+      <dl class="contact-intro__ledger">
+        <div class="contact-intro__row">
+          <dt class="contact-intro__key">{copy.emailLabel}</dt>
+          <dd class="contact-intro__val">
+            <a class="contact-intro__link" href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
+          </dd>
+        </div>
+        <div class="contact-intro__row">
+          <dt class="contact-intro__key">{copy.wechatLabel}</dt>
+          <dd class="contact-intro__val contact-intro__val--plain">{siteConfig.wechat}</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section class="contact-resume" aria-labelledby="resume-heading">
+  <div class="container">
+    <h2 class="contact-resume__heading" id="resume-heading">{copy.resumeHeading}</h2>
+    <p class="contact-resume__body">{copy.resumeBody}</p>
+
+    {isZh ? (
+      <a
+        class="contact-resume__link"
+        href={resumeHref}
+        download="张翼翔-简历.pdf"
+        type="application/pdf"
+      >
+        {copy.resumeLinkText}
+        <span class="contact-resume__tag">PDF</span>
+      </a>
+    ) : (
+      <a class="contact-resume__link" href={resumeHref}>
+        {copy.resumeLinkText}
+        <span class="contact-resume__arrow" aria-hidden="true">&#8594;</span>
+      </a>
+    )}
+  </div>
+</section>
+
+<style>
+  /* ---- Intro --------------------------------------------------------------
+     Title + lead line, matching About/CaseStudy's header rhythm (bigger top
+     pad below the sticky header). */
+  .contact-intro {
+    padding-block: clamp(2.5rem, 1.75rem + 4vw, 4.5rem) var(--space-xl);
+  }
+
+  .contact-intro__title {
+    max-width: 20ch;
+    font-size: var(--text-h1);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    color: var(--color-ink);
+  }
+  :global(:lang(zh)) .contact-intro__title {
+    max-width: 24ch;
+    letter-spacing: 0;
+    line-height: 1.25;
+  }
+
+  .contact-intro__lead {
+    margin-top: var(--space-sm);
+    max-width: 52ch;
+    font-size: var(--text-lead);
+    line-height: 1.5;
+    color: var(--color-muted);
+    text-wrap: pretty;
+  }
+  :global(:lang(zh)) .contact-intro__lead { line-height: 1.65; }
+
+  /* -- Contact panel (email/wechat) -----------------------------------------
+     The same surface-tinted "act now" panel ContactBlock.astro uses for
+     Home's closing CTA — this page IS that moment, reused verbatim. */
+  .contact-intro__panel {
+    margin-top: var(--space-xl);
+    max-width: 30rem;
+    padding: clamp(1.5rem, 1rem + 2vw, 2.25rem);
+    background: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: var(--radius-lg);
+  }
+
+  .contact-intro__ledger {
+    margin: 0;
+    display: grid;
+    gap: var(--space-md);
+  }
+  .contact-intro__row {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--space-sm);
+  }
+  .contact-intro__key {
+    margin: 0;
+    font-size: var(--text-caption);
+    color: var(--color-faint);
+  }
+  .contact-intro__val {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    overflow-wrap: anywhere;
+    color: var(--color-ink);
+  }
+  .contact-intro__val--plain { color: var(--color-ink); }
+  .contact-intro__link {
+    color: var(--color-ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-hairline);
+    padding-bottom: 1px;
+    transition:
+      color var(--dur-fast) var(--ease-out-quart),
+      border-color var(--dur-fast) var(--ease-out-quart);
+  }
+  .contact-intro__link:hover { color: var(--color-primary); border-color: var(--color-primary); }
+  .contact-intro__link:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+  /* ---- Résumé ---------------------------------------------------------- */
+  .contact-resume {
+    padding-block: var(--space-2xl);
+    border-top: 1px solid var(--color-hairline);
+  }
+
+  .contact-resume__heading {
+    margin-bottom: var(--space-sm);
+    font-size: var(--text-h2);
+  }
+
+  .contact-resume__body {
+    max-width: 46ch;
+    color: var(--color-muted);
+    font-size: var(--text-body);
+    line-height: 1.55;
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+  }
+  :global(:lang(zh)) .contact-resume__body { line-height: 1.7; }
+
+  /* Secondary (hairline-bordered) button — the same visual tier Header's
+     mobile nav-toggle already uses. Deliberately NOT the coral primary-button
+     fill, which stays reserved for the site's one "discuss a project" CTA
+     (Footer/ContactBlock) so this page doesn't present two competing calls
+     to action. */
+  .contact-resume__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: var(--space-lg);
+    min-height: 2.75rem;
+    padding: 0.6rem 1.1rem;
+    border: 1px solid var(--color-hairline);
+    border-radius: var(--radius-md);
+    color: var(--color-ink);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+      background-color var(--dur) var(--ease-out-quart),
+      border-color var(--dur) var(--ease-out-quart),
+      color var(--dur) var(--ease-out-quart);
+  }
+  .contact-resume__link:hover {
+    background: var(--color-surface);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+  .contact-resume__link:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+  /* File-format tag: genuine metadata (the instrument voice earns its place
+     here), muted rather than faint so its contrast never depends on the
+     link's hover state. */
+  .contact-resume__tag {
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--color-muted);
+    border: 1px solid var(--color-hairline);
+    border-radius: var(--radius-sm);
+    padding: 0.05em 0.4em;
+  }
+
+  .contact-resume__arrow { transition: transform var(--dur) var(--ease-out-quart); }
+  .contact-resume__link:hover .contact-resume__arrow { transform: translateX(3px); }
+</style>

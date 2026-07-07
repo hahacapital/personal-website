@@ -1,0 +1,172 @@
+---
+// src/components/Hero.astro
+// The opening fold. Statement-led, not metric-led: the positioning sentence is
+// the design, set at display scale on pure white. A single mono "status line"
+// (the instrument voice) states availability as machine-readable metadata; two
+// actions follow — one coral primary (discuss a project), one quiet secondary
+// (see the work). No hero-metric block, no gradient, no decorative panel.
+import type { Locale } from '../i18n/utils';
+import { useTranslations, getLocalizedPath } from '../i18n/utils';
+import { homeContent } from '../data/home-content';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const { heroStatement } = homeContent[lang];
+
+// The status line is genuine metadata (a machine-readable availability signal),
+// which is exactly what the mono "instrument" voice is reserved for.
+const status = {
+  zh: '当前接受短期嵌入式 AI 落地项目',
+  en: 'Available for short-term embedded AI-delivery engagements',
+}[lang];
+
+const viewWork = { zh: '查看案例', en: 'View work' }[lang];
+
+// A one-line, plain-language gloss of the role for the business-side reader who
+// may not know the Palantir-origin term "Forward Deployed Engineer" — placed in
+// the hero eye-path so the most important sentence is never unparseable. Kept
+// quiet (muted, below the statement) so it supports, not competes with, the h1.
+const gloss = {
+  zh: '简单说，直接坐进你的团队里，把一个 AI 想法变成真正跑在生产环境里的系统。',
+  en: 'In plain terms: I sit inside your team and turn an AI idea into a system that actually runs in production.',
+}[lang];
+
+const discussHref = getLocalizedPath('/contact/', lang);
+const workHref = getLocalizedPath('/work/', lang);
+---
+
+<section class="hero" aria-labelledby="hero-statement">
+  <div class="container hero__inner">
+    <p class="hero__status">
+      <span class="hero__status-dot" aria-hidden="true"></span>
+      {status}
+    </p>
+
+    <h1 class="hero__statement" id="hero-statement">{heroStatement}</h1>
+
+    <p class="hero__gloss">{gloss}</p>
+
+    <div class="hero__actions">
+      <a class="hero__cta hero__cta--primary" href={discussHref}>
+        {t('cta.discuss')}
+        <span class="hero__cta-arrow" aria-hidden="true">&#8594;</span>
+      </a>
+      <a class="hero__cta hero__cta--ghost" href={workHref}>{viewWork}</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-block: clamp(3.5rem, 2.5rem + 6vw, 6.5rem) var(--space-2xl);
+  }
+
+  .hero__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Instrument voice: a live-status ledger line, mono + tabular. */
+  .hero__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: var(--space-lg);
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--color-muted);
+    text-wrap: balance;
+  }
+  :global(:lang(zh)) .hero__status { letter-spacing: 0.04em; }
+
+  .hero__status-dot {
+    width: 0.4375rem;
+    height: 0.4375rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-primary) 16%, transparent);
+    flex: none;
+  }
+
+  /* The statement carries the whole fold. Display scale, capped measure so
+     long lines break where meaning does, not at the container edge. */
+  .hero__statement {
+    max-width: 20ch;
+    font-size: var(--text-h1);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    color: var(--color-ink);
+  }
+  :global(:lang(zh)) .hero__statement {
+    max-width: 22ch;
+    letter-spacing: 0;
+    line-height: 1.28;
+  }
+
+  /* Plain-language gloss: quiet, muted, capped measure. Supports the statement
+     without competing with it — a second beat, not a second headline. */
+  .hero__gloss {
+    margin-top: var(--space-lg);
+    max-width: 46ch;
+    color: var(--color-muted);
+    font-size: var(--text-lead);
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+  :global(:lang(zh)) .hero__gloss { line-height: 1.65; }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-sm) var(--space-md);
+    margin-top: clamp(1.5rem, 1rem + 1.8vw, 2.25rem);
+  }
+
+  .hero__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;      /* 44px comfortable target */
+    padding: 0.65rem 1.15rem;
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+      color var(--dur) var(--ease-out-quart),
+      background-color var(--dur) var(--ease-out-quart),
+      border-color var(--dur) var(--ease-out-quart),
+      transform var(--dur) var(--ease-out-quart);
+  }
+  .hero__cta:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+  .hero__cta:active { transform: translateY(1px); }
+
+  .hero__cta--primary {
+    background: var(--color-primary);
+    color: var(--color-bg);
+  }
+  .hero__cta--primary:hover { background: var(--color-primary-hover); }
+  .hero__cta-arrow { transition: transform var(--dur) var(--ease-out-quart); }
+  .hero__cta--primary:hover .hero__cta-arrow { transform: translateX(3px); }
+
+  /* Quiet secondary: hairline-bordered, ink text, no fill. */
+  .hero__cta--ghost {
+    background: transparent;
+    color: var(--color-ink);
+    border: 1px solid var(--color-hairline);
+  }
+  .hero__cta--ghost:hover {
+    border-color: var(--color-ink);
+    background: color-mix(in oklch, var(--color-ink) 4%, transparent);
+  }
+</style>

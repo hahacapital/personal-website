@@ -1,0 +1,79 @@
+---
+// src/components/InvestmentSummary.astro
+// A single load-bearing statement: the investment/quant practice framed as
+// evidence of AI-and-adjacent fluency (per PRODUCT.md, NOT a pitch to be hired
+// as an investor). Set at lead scale as a standalone claim, with a mono label
+// naming what it is. Deliberately quiet — one sentence, a lot of air around it.
+import type { Locale } from '../i18n/utils';
+import { homeContent } from '../data/home-content';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const { investmentSummary } = homeContent[lang];
+
+const label = {
+  zh: '投资 / 量化研究',
+  en: 'Investment / quant research',
+}[lang];
+---
+
+<section class="investment" aria-labelledby="investment-label">
+  <div class="container investment__inner">
+    <h2 class="investment__label label-mono" id="investment-label">{label}</h2>
+    <p class="investment__statement">{investmentSummary}</p>
+  </div>
+</section>
+
+<style>
+  .investment {
+    padding-block: var(--space-2xl);
+    border-top: 1px solid var(--color-hairline);
+  }
+
+  .investment__inner {
+    display: grid;
+    gap: var(--space-md);
+  }
+
+  @media (min-width: 48rem) {
+    .investment__inner {
+      grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+      column-gap: var(--space-xl);
+      align-items: start;
+    }
+  }
+
+  /* An <h2> for a complete document outline, but styled as the mono instrument
+     label it reads as — NOT a large section heading, and NOT the tracked
+     eyebrow the design forbids. Override the global h2 ramp explicitly so the
+     element change is invisible on screen. */
+  .investment__label {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--color-faint);
+    text-wrap: initial;
+    padding-top: 0.4rem;   /* optical align with the large statement's cap */
+  }
+  :global(:lang(zh)) .investment__label { letter-spacing: 0.04em; }
+
+  /* The statement is the design. Lead scale, ink, capped measure, and a coral
+     accent only on the em-dash-set aside via the mark — but kept as plain ink
+     to avoid gimmick; emphasis comes from scale + air, not decoration. */
+  .investment__statement {
+    max-width: 46ch;
+    font-size: var(--text-lead);
+    line-height: 1.45;
+    color: var(--color-ink);
+    text-wrap: pretty;
+    font-weight: 400;
+  }
+  :global(:lang(zh)) .investment__statement { line-height: 1.6; }
+</style>
