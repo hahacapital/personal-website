@@ -37,6 +37,11 @@
   /* Brand */
   --color-primary: oklch(0.56 0.17 36);         /* coral 5.0:1 on white #c3441f */
   --color-primary-hover: oklch(0.5 0.165 35);   /* #ad3210 */
+  /* Documented in DESIGN.md's palette table (role: "Secondary marks") as part
+     of the deliberate v1 design system, but no shipped component has needed a
+     second hierarchy color yet — intentionally reserved, not dead: keep this
+     token as the one source of truth for that role rather than letting a
+     future component re-derive a slightly different blue. */
   --color-accent: oklch(0.4 0.07 250);          /* slate-blue 9.2:1  #284a6c */
 
   /* Typography */
